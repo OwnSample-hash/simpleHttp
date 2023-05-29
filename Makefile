@@ -1,2 +1,2 @@
 all:
-	clang main.c -o simple -O2
+	clang *.c -o simple -ggdb
