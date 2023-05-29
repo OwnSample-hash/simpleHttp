@@ -4,7 +4,8 @@
 GET /index.html
 
 ## Resp:
-\<html\>
+```html
+<html>
   Very simple html file
-\</html\>
-
+</html>
+```
