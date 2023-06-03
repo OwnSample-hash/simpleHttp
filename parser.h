@@ -15,7 +15,7 @@ typedef struct __splits
 
 int parseGet (char *payload, size_t spayload, int client_fd);
 splits_t splitOn_c (char *str, const char *delimiter);
-void freeArray (size_t count, void **array);
+void erep (int client_fd);
 void strncatskip (char *dst, const char *src, size_t count, size_t offset);
 
 #endif /* __PARSER_SHTTP__ */
