@@ -1,4 +1,5 @@
 #include "parser.h"
+#include "linkList.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -27,52 +28,18 @@ freeArray (size_t count, void **array)
     }
 }
 
-int
-splitOn_c (char delimiter, splits_t *_dst, const char *src)
+splits_t
+splitOn_c (char *str, const char *delimiter)
 {
-  int splits = 1;
-  size_t src_len = strlen (src);
-  _dst = calloc (1, sizeof (splits_t));
-  splits_t *__dst = _dst;
-  for (int i = 0; i < src_len; i++)
+  splits_t head = NULL;
+  char *token = strtok (str, delimiter);
+
+  while (token != NULL)
     {
-      if (src[i] == delimiter)
-        splits++;
+      insertNode (&head, token);
+      token = strtok (NULL, delimiter);
     }
-  for (int i = 0; i < splits; i++)
-    {
-      _dst->next = calloc (1, sizeof (splits_t));
-      _dst = _dst->next;
-    }
-  _dst = __dst;
-  int string_len = 0;
-  splits = 0;
-  for (int i = 0; i < src_len; i++)
-    {
-      if (src[i] != delimiter)
-        {
-          string_len++;
-        }
-      else
-        {
-          _dst[splits++].ctn = calloc (string_len + 1, sizeof (char));
-          string_len = 0;
-          _dst = _dst->next;
-        }
-    }
-  _dst = __dst;
-  splits = 0;
-  string_len = 0;
-  for (int i = 0; i < src_len; i++)
-    {
-      if (src[i] != delimiter)
-        {
-          _dst->ctn[string_len++] = src[i];
-        }
-      else
-        splits++;
-    }
-  return splits + 1;
+  return head;
 }
 
 int

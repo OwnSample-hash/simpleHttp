@@ -9,12 +9,12 @@
 
 typedef struct __splits
 {
-  char *ctn;
+  char *data;
   struct __splits *next;
-} splits_t;
+} *splits_t;
 
 int parseGet (char *payload, size_t spayload, int client_fd);
-int splitOn_c (char delimiter, splits_t *dst, const char *src);
+splits_t splitOn_c (char *str, const char *delimiter);
 void freeArray (size_t count, void **array);
 void erep (int client_fd);
 void strncatskip (char *dst, const char *src, size_t count, size_t offset);

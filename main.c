@@ -1,5 +1,6 @@
 // simpleHttp HTTP/1.1
 
+#include "linkList.h"
 #include "parser.h"
 #include "socket.h"
 #include <stdio.h>
@@ -8,13 +9,11 @@ int
 main (int argc, char **argv)
 {
   printf ("simpleHTTP HTTP/1.1\n");
-  splits_t *splits_;
-  int splits = splitOn_c (' ', splits_, (const char *)"Hello World lmao");
-  if (splits == -1)
-    {
-      return -1;
-    }
-  printf ("splits: %d\nAddress of splits_ %p\n", splits, &splits_);
+  /*char str[] = "Hello World splited";
+  const char delim[] = " ";
+  splits_t splits_ = splitOn_c (str, delim);
+  displayList (splits_);
+  freeList (splits_);*/
   createSocket (argc, argv);
   fprintf (stderr, "Listening on port %d\n", server_port);
   while (1)
