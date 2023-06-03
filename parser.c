@@ -19,15 +19,6 @@ erep (int client_fd)
   write (client_fd, payload, sizeof (payload));
 }
 
-void
-freeArray (size_t count, void **array)
-{
-  for (int i = 0; i < count; i++)
-    {
-      free (array[i]);
-    }
-}
-
 splits_t
 splitOn_c (char *str, const char *delimiter)
 {
@@ -62,7 +53,7 @@ parseGet (char *payload, size_t spayload, int client_fd)
       write (client_fd, buf, strlen (buf));
     }
   if (feof (fp))
-    printf ("eof hit on %s\n", fn);
+    fprintf (stderr, "eof hit on %s\n", fn);
   fclose (fp);
   free (fn);
   return 0;
