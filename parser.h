@@ -13,6 +13,7 @@ typedef struct __splits
   struct __splits *next;
 } *splits_t;
 
+int parseReq (char *request, size_t srequest, int client_fd);
 int parseGet (char *payload, size_t spayload, int client_fd);
 splits_t splitOn_c (char *str, const char *delimiter);
 void erep (int client_fd);

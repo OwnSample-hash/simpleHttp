@@ -23,13 +23,13 @@ main (int argc, char **argv)
                               (struct sockaddr *)&client_address, &client_len);
       while ((nbytes_read = read (client_sockfd, buf, BUFSIZ)) > 0)
         {
-          printf ("Recived: %s\n", buf);
-          if (buf[nbytes_read - 1] == '\n')
-            newline_found = 1;
-          if (parseGet (buf, nbytes_read, client_sockfd) != 0)
+          // printf ("Recived: %s\n", buf);
+          // if (buf[nbytes_read - 1] == '\n')
+          // newline_found = 1;
+          if (parseReq (buf, nbytes_read, client_sockfd) != 0)
             erep (client_sockfd);
-          if (newline_found)
-            break;
+          // if (newline_found)
+          //  break;
         }
       close (client_sockfd);
     }
