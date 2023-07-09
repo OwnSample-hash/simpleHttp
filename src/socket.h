@@ -11,7 +11,6 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-extern char buf[BUFSIZ];
 extern char protoname[];
 extern struct protoent *protoent;
 extern int enable, i, newline_found, server_sockfd, client_sockfd;

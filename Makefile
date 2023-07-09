@@ -1,2 +1,2 @@
 all:
-	clang *.c -o simple -ggdb
+	clang src/*.c -o simple -ggdb

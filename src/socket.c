@@ -1,6 +1,5 @@
 #include "socket.h"
 
-char buf[BUFSIZ];
 char protoname[] = "tcp";
 struct protoent *protoent;
 int enable = 1, i, newline_found = 0, server_sockfd, client_sockfd;
