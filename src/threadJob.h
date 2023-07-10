@@ -5,11 +5,10 @@
 #include "socket.h"
 #include <pthread.h>
 
-void threadJob (int client_sockfd);
+void threadJob(int client_sockfd);
 extern char buf[BUFSIZ];
 
-typedef struct __threads
-{
+typedef struct __threads {
   pthread_t *data;
   struct __threads *next;
 } *threads_t;

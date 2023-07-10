@@ -19,6 +19,6 @@ extern ssize_t nbytes_read;
 extern struct sockaddr_in client_address, server_address;
 extern unsigned short server_port;
 
-int createSocket (int argc, char **argv);
+int createSocket(int argc, char **argv);
 
 #endif /* __SOCKET_SHTTP_ */
