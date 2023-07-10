@@ -26,10 +26,13 @@ main (int argc, char **argv)
         {
         case -1:
           perror ("fork on client handler\n");
+          break;
         case 0:
           threadJob (client_sockfd);
+          return 0;
         default:
           printf ("The CHILD pid is %jd\n", (intmax_t)pid);
+          break;
         }
     }
   return 0;

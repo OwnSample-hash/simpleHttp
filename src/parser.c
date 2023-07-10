@@ -1,6 +1,7 @@
 #include "parser.h"
 #include "itoa.h"
 #include "linkList.h"
+#include <assert.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -11,6 +12,8 @@ void
 erep (int client_fd)
 {
   static const char payload[] = "HTTP/1.1 404 Not Found\r\n"
+                                "Connection: close\r\n"
+                                "Content-Length: 67\r\n"
                                 "\r\n"
                                 "<html>\r\n"
                                 "<head>\r\n"
@@ -53,8 +56,8 @@ parseReq (char *request, size_t srequest, int client_fd)
     {
       if (strcmp (wordsGet->next->data, "/") == 0)
         wordsGet->next->data = "/index.html";
-      else
-        return 1;
+      // else
+      //   return 1;
     }
   else
     {
@@ -67,28 +70,31 @@ parseReq (char *request, size_t srequest, int client_fd)
   payload = calloc (payload_len + 2, sizeof (char));
   snprintf (payload, payload_len + 2, "%s %s", wordsGet->data,
             wordsGet->next->data);
-  int ret = parseGet (payload, strlen (payload), client_fd);
+  printf ("Calling parseGet with %s payload\n", payload);
   freeList (lines);
   freeList (wordsGet);
+  int ret = parseGet (payload, strlen (payload), client_fd);
+  free (payload);
   return ret;
 }
 
 int
 parseGet (char *payload, size_t spayload, int client_fd)
 {
-  char *fn = calloc (spayload, sizeof (char));
+  char *fn = calloc (spayload + 1, sizeof (char));
   strncpy (fn, "./server", 8);
   strncatskip (fn, payload, spayload, 4);
   // fn[strlen (fn) - 1] = '\0';
-  printf ("Opening file: %s\n", fn);
-  FILE *fp = fopen (fn, "r");
+  printf ("Opening file: '%s'\n", fn);
+  FILE *fp = fopen (fn, "rb");
+  assert (1);
   if (fp == NULL)
     {
       perror ("fopen");
       return 1;
     }
+
   const char HEADER[] = "HTTP/1.1 200 Ok\r\nConnection: close\r\n";
-  write (client_fd, HEADER, strlen (HEADER));
   struct stat src_stat;
   if (stat (fn, &src_stat))
     {
@@ -97,13 +103,14 @@ parseGet (char *payload, size_t spayload, int client_fd)
     }
   char *shit = TO_BASE (src_stat.st_size, 10);
   int len_strelen = strlen (shit);
-  char *len_header
-      = calloc (20 + len_strelen, sizeof (char)); // "Content-Length: "
-  snprintf (len_header, 20 + len_strelen, "%s %jd\r\n\r\n", "Content-Length",
-            src_stat.st_size);
-  printf ("Cl: %s\n", len_header);
-  write (client_fd, len_header, strlen (len_header));
-  char buf[BUFSIZ];
+  char *header_payload = calloc (20 + len_strelen + strlen (HEADER),
+                                 sizeof (char)); // "Content-Length: "
+  snprintf (header_payload, 20 + len_strelen + strlen (HEADER), "%s%s %jd\r\n",
+            HEADER, "Content-Length:", src_stat.st_size);
+  write (client_fd, header_payload, strlen (header_payload));
+  write (client_fd, "\r\n", 2);
+
+  char *buf = calloc (BUFSIZ, sizeof (char));
   while (fgets (buf, BUFSIZ, fp) != NULL)
     {
       write (client_fd, buf, strlen (buf));
@@ -112,7 +119,9 @@ parseGet (char *payload, size_t spayload, int client_fd)
   if (feof (fp))
     fprintf (stderr, "eof hit on %s\n", fn);
   fclose (fp);
+  free (buf);
   free (fn);
+  free (header_payload);
   return 0;
 }
 
