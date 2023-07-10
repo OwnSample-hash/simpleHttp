@@ -62,7 +62,7 @@ int parseReq(char *request, size_t srequest, int client_fd) {
   payload = calloc(payload_len + 2, sizeof(char));
   snprintf(payload, payload_len + 2, "%s %s", wordsGet->data,
            wordsGet->next->data);
-  printf("Calling parseGet with %s payload\n", payload);
+  /*  printf("Calling parseGet with %s payload\n", payload); */
   freeList(lines);
   freeList(wordsGet);
   int ret = parseGet(payload, strlen(payload), client_fd);
@@ -77,7 +77,7 @@ int parseGet(char *payload, size_t spayload, int client_fd) {
   // fn[strlen (fn) - 1] = '\0';
   printf("Opening file: '%s'\n", fn);
   FILE *fp = fopen(fn, "rb");
-  raise(SIGINT);
+  // raise(SIGTRAP);
   if (fp == NULL) {
     perror("fopen");
     return 1;
@@ -98,13 +98,15 @@ int parseGet(char *payload, size_t spayload, int client_fd) {
   write(client_fd, header_payload, strlen(header_payload));
   write(client_fd, "\r\n", 2);
 
-  char *buf = calloc(BUFSIZ, sizeof(char));
-  while (fgets(buf, BUFSIZ, fp) != NULL) {
-    write(client_fd, buf, strlen(buf));
+  char *buf = calloc(BUFSIZ * 2, sizeof(char));
+  size_t bytes_read;
+  while ((bytes_read = fread(buf, sizeof(char), sizeof(buf), fp)) > 0) {
+    write(client_fd, buf, bytes_read);
   }
+
   write(client_fd, "\r\n", 2);
   if (feof(fp))
-    fprintf(stderr, "eof hit on %s\n", fn);
+    printf("eof hit on %s\n", fn);
   fclose(fp);
   free(buf);
   free(fn);

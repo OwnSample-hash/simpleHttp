@@ -21,6 +21,7 @@ int main(int argc, char **argv) {
         accept(server_sockfd, (struct sockaddr *)&client_address, &client_len);
     counter++;
     if (counter > 50) {
+      fprintf(stderr, "Exiting due to counter reached 50\n");
       break;
     }
     pid_t pid = fork();
