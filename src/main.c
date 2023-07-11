@@ -1,6 +1,7 @@
 // simpleHttp HTTP/1.1
 
 #include "linkList.h"
+#include "logger/logger.h"
 #include "parser.h"
 #include "socket.h"
 #include "threadJob.h"
@@ -11,7 +12,9 @@
 #include <unistd.h>
 
 int main(int argc, char **argv) {
-  printf("simpleHTTP HTTP/1.1\nhttp://tx.rx:8080/\n");
+  init_logger(WARN);
+  printf("simpleHTTP HTTP/1.1\nhttp://tx.rx:%s/\n",
+         (argc != 2) ? "8080" : argv[1]);
   createSocket(argc, argv);
   fprintf(stderr, "Listening on port %d\n", server_port);
   int counter = 0;

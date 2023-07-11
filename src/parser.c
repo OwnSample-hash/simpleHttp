@@ -1,14 +1,6 @@
 #include "parser.h"
 #include "itoa.h"
 #include "linkList.h"
-#include <assert.h>
-#include <signal.h>
-#include <stdbool.h>
-#include <stdint.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <sys/stat.h>
 
 void erep(int client_fd) {
   static const char payload[] = "HTTP/1.1 404 Not Found\r\n"
