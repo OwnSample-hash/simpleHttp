@@ -1,3 +1,4 @@
+build/
 simple
 server/*.png
 server/*.jpg
