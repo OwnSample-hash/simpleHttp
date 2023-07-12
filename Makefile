@@ -1,6 +1,19 @@
-.PHONY:
-all: link
+CC = clang
+CLN = clang
+CFLAGS = -ggdb -DGIT_COMMIT=\"$(shell git rev-parse --short HEAD)\"
+
+BIN = simple
+
+.PHONY: all
+all: prolog link
 	@echo Done bulding
+
+prolog:
+	@echo CC=${CC}
+	@echo CLN=${CLN}
+	@echo CFLAGS=${CFLAGS}
+	@echo BIN=${BIN}
+	@echo
 
 clean:
 	rm build -rf
@@ -9,8 +22,8 @@ clean:
 build: clean
 	mkdir -p build/src/logger
 	@for file in `find src/ -name "*.c"`; do\
-		printf "clang -c %-20s %s.o -ggdb\n" $$file "-o build/$$file";\
-		clang -c $$file -o build/$$file.o -ggdb;\
+		printf "${CC} -c %-20s %-30s %s\n" $$file "-o build/$$file.o" '${CFLAGS}';\
+		${CC} -c $$file -o build/$$file.o ${CFLAGS};\
 	done
 	@for file in `find src/ -name "*.h"`; do\
 		printf "cp %-20s %s\n" $$file build/$$file;\
@@ -21,9 +34,9 @@ objects = $(shell find build/src/ -name "*.o" | sed "s#build/##")
 
 link: build
 	@cd build;\
-	clang -o simple $(objects) -Isrc/ -Isrc/logger
-	@printf "clang -o simple -Isrc/ -Isrc/logger\n"
-	@ for file in $(objects); do\
+	${CLN} -o ${BIN} $(objects) 
+	@printf "${CLN} -o ${BIN}\n"
+	@for file in $(objects); do\
 		printf "\t%s\n" $$file;\
 	done
 	cp build/simple .
