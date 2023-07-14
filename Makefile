@@ -1,6 +1,7 @@
 CC = clang
 CLN = clang
 CFLAGS = -ggdb -DGIT_COMMIT=\"$(shell git rev-parse --short HEAD)\"
+CLNFLAGS = -lmagic
 
 BIN = simple
 
@@ -34,13 +35,10 @@ objects = $(shell find build/src/ -name "*.o" | sed "s#build/##")
 
 link: build
 	@cd build;\
-	${CLN} -o ${BIN} $(objects) 
-	@printf "${CLN} -o ${BIN}\n"
+	${CLN} -o ${BIN} ${CLNFLAGS} $(objects) 
+	@printf "${CLN} -o ${BIN} ${CLNFLAGS} \n"
 	@for file in $(objects); do\
 		printf "\t%s\n" $$file;\
 	done
 	cp build/simple .
-
-
-
 
