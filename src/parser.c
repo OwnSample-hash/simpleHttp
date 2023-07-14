@@ -1,6 +1,7 @@
 #include "parser.h"
 #include "itoa.h"
 #include "linkList.h"
+#include "mime_guess.h"
 
 void erep(int client_fd) {
   static const char payload[] = "HTTP/1.1 404 Not Found\r\n"
@@ -89,8 +90,9 @@ int parseGet(char *payload, size_t spayload, int client_fd) {
            HEADER, "Content-Length:", src_stat.st_size);
   write(client_fd, header_payload, strlen(header_payload));
   write(client_fd, "\r\n", 2);
-
-  char *buf = calloc(BUFSIZ * 2, sizeof(char));
+  /* printf("%s\n", header_payload); */
+  ContentType(fn);
+  char *buf = calloc(BUFSIZ * 65536, sizeof(char));
   size_t bytes_read;
   while ((bytes_read = fread(buf, sizeof(char), sizeof(buf), fp)) > 0) {
     write(client_fd, buf, bytes_read);
