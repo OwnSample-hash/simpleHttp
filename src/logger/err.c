@@ -3,8 +3,12 @@
 int pipe_err[2];
 FILE *pipeE_writefp;
 FILE *pipeE_readfp;
+bool inited_e = false;
 
 void err(char *msg, ...) {
+  if (!inited_e) {
+    return;
+  }
   va_list ap;
   va_start(ap, msg);
   fprintf(pipeE_writefp, "[!ERR] ");
@@ -17,6 +21,7 @@ int init_err() {
     perror("pipe, err");
     return -1;
   }
+  inited_e = true;
   pipeE_writefp = fdopen(pipe_err[1], "w");
   pipeE_readfp = fdopen(pipe_err[0], "r");
   return 0;

@@ -1,6 +1,7 @@
 // simpleHttp HTTP/1.1
 
 #include "linkList.h"
+#include "logger/dbg.h"
 #include "logger/logger.h"
 #include "parser.h"
 #include "quit_handler.h"
@@ -33,18 +34,9 @@ int main(int argc, char **argv) {
 #else
   printf("Not inting logging shit\n");
 #endif
-  // #define __FILENAME__                                                           \
-//   (strrchr(__FILE__, '/') ? strrchr(__FILE__, '/') + 1 : __FILE__)
-#define _DBG(...) dbg("[%s:%d] %s", __FILE__, __LINE__, __VA_ARGS__)
-  printf("printing\n");
-  dbg("%s:%d %s %d\n", __FILE__, __LINE__, "Hello", getpid());
-  _DBG("hello, mario%s\n", "asdfasdf");
-  info("Test no format\n");
-  info("Test format%s\n", "ed!!");
-  info("Main proc pid: %d\n", getpid());
-  info("simpleHTTP-%s HTTP/1.1\nhttp://127.0.0.1:%s/\n", GIT_COMMIT,
+  dbg("%s:%d %s %d\n", __FILE__, __LINE__, "Main proc pid: ", getpid());
+  info("simpleHTTP-%s HTTP/1.1\thttp://127.0.0.1:%s/\n", GIT_COMMIT,
        (argc != 2) ? "8080" : argv[1]);
-  return 0;
   createSocket(argc, argv);
   info("Listening on port %d\n", server_port);
   while (1) {
@@ -61,6 +53,11 @@ int main(int argc, char **argv) {
       break;
     case 0:
       threadJob(client_sockfd);
+      if (dup2(STDOUT_FILENO, 1) == -1) {
+        perror("dup2");
+        return -1;
+      }
+
       return 0;
     default:
       break;

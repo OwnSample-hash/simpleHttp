@@ -33,11 +33,6 @@ splits_t splitOn_c(char *str, const char *delimiter) {
 
 int parseReq(char *request, size_t srequest, int client_fd) {
   splits_t lines = splitOn_c(request, (const char *)"\n");
-  // lines[0] == GET / HTTP/1.1
-  // TODO:
-  //  resolve / => /index.html done
-  //  remove HTTP/1.1 from the end done
-  //  parse and log more info from the req
   char *cpyData = lines->data;
   splits_t wordsGet = splitOn_c(cpyData, (const char *)" ");
   // wordsGet[0] == GET
@@ -46,8 +41,6 @@ int parseReq(char *request, size_t srequest, int client_fd) {
   if (wordsGet->next != NULL) {
     if (strcmp(wordsGet->next->data, "/") == 0)
       wordsGet->next->data = "/index.html";
-    // else
-    //   return 1;
   } else
     return 1;
   char *payload;
@@ -57,7 +50,6 @@ int parseReq(char *request, size_t srequest, int client_fd) {
   payload = calloc(payload_len + 2, sizeof(char));
   snprintf(payload, payload_len + 2, "%s %s", wordsGet->data,
            wordsGet->next->data);
-  /*  printf("Calling parseGet with %s payload\n", payload); */
   freeList(lines);
   freeList(wordsGet);
   int ret = parseGet(payload, strlen(payload), client_fd);
@@ -69,10 +61,8 @@ int parseGet(char *payload, size_t spayload, int client_fd) {
   char *fn = calloc(spayload + 1, sizeof(char));
   strncpy(fn, "./server", 8);
   strncatskip(fn, payload, spayload, 4);
-  // fn[strlen (fn) - 1] = '\0';
   info("Opening file: '%s'\n", fn);
   FILE *fp = fopen(fn, "rb");
-  // raise(SIGTRAP);
   if (fp == NULL) {
     perror("fopen");
     return 1;
@@ -95,7 +85,6 @@ int parseGet(char *payload, size_t spayload, int client_fd) {
            cntTyp);
   write(client_fd, header_payload, strlen(header_payload));
   write(client_fd, "\r\n", 2);
-  /* printf("%s\n", header_payload); */
 
   char *buf = calloc(20971520, sizeof(char));
   size_t bytes_read;

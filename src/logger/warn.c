@@ -3,8 +3,12 @@
 int pipe_warn[2];
 FILE *pipeW_writefp;
 FILE *pipeW_readfp;
+bool inited_w = true;
 
 void warn(char *msg, ...) {
+  if (!inited_w) {
+    return;
+  }
   va_list ap;
   va_start(ap, msg);
   fprintf(pipeW_writefp, "[WARN] ");
@@ -17,6 +21,7 @@ int init_warn() {
     perror("pipe, warn");
     return -1;
   }
+  inited_w = true;
   pipeW_writefp = fdopen(pipe_warn[1], "w");
   pipeW_readfp = fdopen(pipe_warn[0], "r");
 
