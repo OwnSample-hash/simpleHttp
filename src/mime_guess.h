@@ -4,7 +4,8 @@
 #include <magic.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
-char *ContentType(char *fn);
+char *ContentType(const char *fn);
 
 #endif // !__MIME_GUESS_HTTP__

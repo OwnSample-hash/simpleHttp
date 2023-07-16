@@ -13,4 +13,6 @@ extern FILE *pipeI_readfp;
 void info(char *msg, ...);
 int init_info();
 
+#define INFO(msg, ...) info("%s:%d %s", __FILE__, __LINE__, msg, ...);
+
 #endif // !__INFO_HTTP_

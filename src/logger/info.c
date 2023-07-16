@@ -7,6 +7,7 @@ FILE *pipeI_readfp;
 void info(char *msg, ...) {
   va_list ap;
   va_start(ap, msg);
+  fprintf(pipeI_writefp, "[INFO] ");
   vfprintf(pipeI_writefp, msg, ap);
   va_end(ap);
 }

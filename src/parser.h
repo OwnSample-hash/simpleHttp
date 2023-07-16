@@ -1,6 +1,7 @@
 #ifndef __PARSER_SHTTP__
 #define __PARSER_SHTTP__
 
+#include "logger/logger.h"
 #include <assert.h>
 #include <signal.h>
 #include <stdbool.h>

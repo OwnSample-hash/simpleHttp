@@ -7,6 +7,7 @@ FILE *pipeD_readfp;
 void dbg(char *msg, ...) {
   va_list ap;
   va_start(ap, msg);
+  fprintf(pipeD_writefp, "[DBG] ");
   vfprintf(pipeD_writefp, msg, ap);
   va_end(ap);
 }

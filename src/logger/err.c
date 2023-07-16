@@ -7,6 +7,7 @@ FILE *pipeE_readfp;
 void err(char *msg, ...) {
   va_list ap;
   va_start(ap, msg);
+  fprintf(pipeE_writefp, "[!ERR] ");
   vfprintf(pipeE_writefp, msg, ap);
   va_end(ap);
 }
@@ -18,6 +19,5 @@ int init_err() {
   }
   pipeE_writefp = fdopen(pipe_err[1], "w");
   pipeE_readfp = fdopen(pipe_err[0], "r");
-
   return 0;
 }

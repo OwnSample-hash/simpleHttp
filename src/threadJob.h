@@ -1,6 +1,7 @@
 #ifndef __THREADJOB_HTTP__
 #define __THREADJOB_HTTP__
 
+#include "logger/logger.h"
 #include "parser.h"
 #include "socket.h"
 #include <pthread.h>

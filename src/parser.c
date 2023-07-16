@@ -2,11 +2,13 @@
 #include "itoa.h"
 #include "linkList.h"
 #include "mime_guess.h"
+#include <stdio.h>
 
 void erep(int client_fd) {
   static const char payload[] = "HTTP/1.1 404 Not Found\r\n"
                                 "Connection: close\r\n"
-                                "Content-Length: 67\r\n"
+                                "Content-Length: 90\r\n"
+                                "Content-Type: text/html\r\n"
                                 "\r\n"
                                 "<html>\r\n"
                                 "<head>\r\n"
@@ -68,7 +70,7 @@ int parseGet(char *payload, size_t spayload, int client_fd) {
   strncpy(fn, "./server", 8);
   strncatskip(fn, payload, spayload, 4);
   // fn[strlen (fn) - 1] = '\0';
-  printf("Opening file: '%s'\n", fn);
+  info("Opening file: '%s'\n", fn);
   FILE *fp = fopen(fn, "rb");
   // raise(SIGTRAP);
   if (fp == NULL) {
@@ -82,29 +84,33 @@ int parseGet(char *payload, size_t spayload, int client_fd) {
     perror("stat");
     return 1;
   }
-  char *shit = TO_BASE(src_stat.st_size, 10);
-  int len_strelen = strlen(shit);
-  char *header_payload = calloc(20 + len_strelen + strlen(HEADER),
+  char *cntTyp = ContentType(fn);
+  int cntLen = strlen(cntTyp);
+  char *str_size = TO_BASE(src_stat.st_size, 10);
+  int len_strelen = strlen(str_size);
+  char *header_payload = calloc(20 + len_strelen + strlen(HEADER) + cntLen,
                                 sizeof(char)); // "Content-Length: "
-  snprintf(header_payload, 20 + len_strelen + strlen(HEADER), "%s%s %jd\r\n",
-           HEADER, "Content-Length:", src_stat.st_size);
+  snprintf(header_payload, 20 + len_strelen + strlen(HEADER) + cntLen,
+           "%s%s %jd\r\n%s\r\n", HEADER, "Content-Length:", src_stat.st_size,
+           cntTyp);
   write(client_fd, header_payload, strlen(header_payload));
   write(client_fd, "\r\n", 2);
   /* printf("%s\n", header_payload); */
-  ContentType(fn);
-  char *buf = calloc(BUFSIZ * 65536, sizeof(char));
+
+  char *buf = calloc(20971520, sizeof(char));
   size_t bytes_read;
-  while ((bytes_read = fread(buf, sizeof(char), sizeof(buf), fp)) > 0) {
+  while ((bytes_read = fread(buf, sizeof(char), 20971520, fp)) > 0) {
     write(client_fd, buf, bytes_read);
   }
 
   write(client_fd, "\r\n", 2);
   if (feof(fp))
-    printf("eof hit on %s\n", fn);
+    info("eof hit on %s\n", fn);
   fclose(fp);
   free(buf);
   free(fn);
   free(header_payload);
+  free(cntTyp);
   return 0;
 }
 

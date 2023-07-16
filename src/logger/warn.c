@@ -7,6 +7,7 @@ FILE *pipeW_readfp;
 void warn(char *msg, ...) {
   va_list ap;
   va_start(ap, msg);
+  fprintf(pipeW_writefp, "[WARN] ");
   vfprintf(pipeW_writefp, msg, ap);
   va_end(ap);
 }
