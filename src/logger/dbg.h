@@ -13,7 +13,10 @@ extern FILE *pipeD_writefp;
 extern FILE *pipeD_readfp;
 void dbg(char *msg, ...);
 int init_dbg();
+void dbg_with_line_num(const char *pre, const char *__file__,
+                       const int __line__, const char *msg, ...);
 
-#define DBG_L_NOFMT(...) dbg("[%s:%d] %s", __FILE__, __LINE__, __VA_ARGS__)
+#define _DBG(msg, ...)                                                         \
+  dbg_with_line_num("[DBG]  [%s:%d] ", __FILE__, __LINE__, msg, __VA_ARGS__)
 
 #endif // !__DBG_HTTP_

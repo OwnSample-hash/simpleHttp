@@ -5,6 +5,18 @@ FILE *pipeE_writefp;
 FILE *pipeE_readfp;
 bool inited_e = false;
 
+void err_with_line_num(const char *pre, const char *__file__,
+                       const int __line__, const char *msg, ...) {
+  if (!inited_e) {
+    return;
+  }
+  va_list ap;
+  va_start(ap, msg);
+  fprintf(pipeE_writefp, pre, __file__, __line__);
+  vfprintf(pipeE_writefp, msg, ap);
+  va_end(ap);
+}
+
 void err(char *msg, ...) {
   if (!inited_e) {
     return;

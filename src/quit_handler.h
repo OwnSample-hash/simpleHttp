@@ -6,6 +6,8 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+#include "logger/logger.h"
+
 void ctrl_c_h(int sigframe);
 
 #endif // !__QUIT_HANDLER_HTTP__

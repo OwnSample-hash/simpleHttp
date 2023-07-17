@@ -24,6 +24,7 @@ typedef enum __log_level {
 } ELogLevel;
 
 extern ELogLevel curr_level;
+extern struct pollfd *fds;
 int init_logger(const ELogLevel lvl, const char *fn);
 void handle();
 

@@ -10,6 +10,7 @@
 #include <signal.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <sys/wait.h>
 #include <unistd.h>
 
 #ifndef GIT_COMMIT
@@ -24,19 +25,24 @@ int main(int argc, char **argv) {
     pid_t log_pid = fork();
     if (log_pid == 0) {
       if (dup2(STDOUT_FILENO, 1) == -1) {
-        perror("dup2");
+        perror("log, dup2");
         return -1;
       }
       handle();
       return 0;
+    } else if (log_pid == -1) {
+      perror("log,fork");
     }
   }
 #else
   printf("Not inting logging shit\n");
 #endif
-  dbg("%s:%d %s %d\n", __FILE__, __LINE__, "Main proc pid: ", getpid());
-  info("simpleHTTP-%s HTTP/1.1\thttp://127.0.0.1:%s/\n", GIT_COMMIT,
-       (argc != 2) ? "8080" : argv[1]);
+  _DBG("hello %s %s\n", "mario", GIT_COMMIT);
+  _INFO("simpleHTTP-%s HTTP/1.1\thttp://127.0.0.1:%s/\n", GIT_COMMIT,
+        (argc != 2) ? "8080" : argv[1]);
+  _WARN("warn, %zu\n", getpid());
+  _ERR("llll%d\n", 234);
+  //   return 0;
   createSocket(argc, argv);
   info("Listening on port %d\n", server_port);
   while (1) {
@@ -47,21 +53,17 @@ int main(int argc, char **argv) {
       perror("client accept");
     }
     pid_t pid = fork();
-    switch (pid) {
-    case -1:
-      perror("fork on client handler\n");
-      break;
-    case 0:
-      threadJob(client_sockfd);
+    if (pid == 0) {
       if (dup2(STDOUT_FILENO, 1) == -1) {
         perror("dup2");
         return -1;
       }
-
-      return 0;
-    default:
-      break;
+      threadJob(client_sockfd);
+      exit(0);
+    } else if (pid == -1) {
+      perror("handler,fork");
     }
+    wait(NULL);
   }
   return 0;
 }

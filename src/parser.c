@@ -61,7 +61,7 @@ int parseGet(char *payload, size_t spayload, int client_fd) {
   char *fn = calloc(spayload + 1, sizeof(char));
   strncpy(fn, "./server", 8);
   strncatskip(fn, payload, spayload, 4);
-  info("Opening file: '%s'\n", fn);
+  _INFO("Opening file: '%s'\n", fn);
   FILE *fp = fopen(fn, "rb");
   if (fp == NULL) {
     perror("fopen");
@@ -94,7 +94,7 @@ int parseGet(char *payload, size_t spayload, int client_fd) {
 
   write(client_fd, "\r\n", 2);
   if (feof(fp))
-    info("eof hit on %s\n", fn);
+    _INFO("eof hit on %s\n", fn);
   fclose(fp);
   free(buf);
   free(fn);

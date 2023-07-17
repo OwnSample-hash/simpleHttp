@@ -5,6 +5,18 @@ FILE *pipeW_writefp;
 FILE *pipeW_readfp;
 bool inited_w = true;
 
+void warn_with_line_num(const char *pre, const char *__file__,
+                        const int __line__, const char *msg, ...) {
+  if (!inited_w) {
+    return;
+  }
+  va_list ap;
+  va_start(ap, msg);
+  fprintf(pipeW_writefp, pre, __file__, __line__);
+  vfprintf(pipeW_writefp, msg, ap);
+  va_end(ap);
+}
+
 void warn(char *msg, ...) {
   if (!inited_w) {
     return;

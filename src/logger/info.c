@@ -5,6 +5,18 @@ FILE *pipeI_writefp;
 FILE *pipeI_readfp;
 bool inited_i = false;
 
+void info_with_line_num(const char *pre, const char *__file__,
+                        const int __line__, const char *msg, ...) {
+  if (!inited_i) {
+    return;
+  }
+  va_list ap;
+  va_start(ap, msg);
+  fprintf(pipeI_writefp, pre, __file__, __line__);
+  vfprintf(pipeI_writefp, msg, ap);
+  va_end(ap);
+}
+
 void info(char *msg, ...) {
   if (!inited_i) {
     return;

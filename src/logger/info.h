@@ -13,7 +13,10 @@ extern FILE *pipeI_writefp;
 extern FILE *pipeI_readfp;
 void info(char *msg, ...);
 int init_info();
+void info_with_line_num(const char *pre, const char *__file__,
+                        const int __line__, const char *msg, ...);
 
-#define INFO(msg, ...) info("%s:%d %s", __FILE__, __LINE__, msg, ...);
+#define _INFO(msg, ...)                                                        \
+  info_with_line_num("[INFO] [%s:%d] ", __FILE__, __LINE__, msg, __VA_ARGS__)
 
 #endif // !__INFO_HTTP_

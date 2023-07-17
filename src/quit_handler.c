@@ -1,6 +1,7 @@
 #include "quit_handler.h"
 
 void ctrl_c_h(int sigframe) {
-  printf("\nQuitting...%d\n", getpid());
+  printf("\nQuitting and freeing things...%d\n", getpid());
+  free(fds);
   exit(0);
 }
