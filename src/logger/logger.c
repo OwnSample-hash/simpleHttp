@@ -1,4 +1,7 @@
 #include "logger.h"
+#include <linux/limits.h>
+#include <stdio.h>
+#include <string.h>
 
 ELogLevel curr_level;
 struct pollfd *fds;
@@ -7,29 +10,21 @@ FILE *main_fp;
 void handle() {
   if (curr_level == LNONE)
     return;
-  printf("[Pre-Info]Polling with %d fds\n", curr_level);
+  printf("[Pre-Info] Polling with %d fds\n", curr_level);
   while (true) {
     int poll_ret = 0;
     while ((poll_ret = poll(fds, curr_level, -1)) > 0) {
-      for (int i = curr_level; i > -1; i--) {
-        if (fds[i].revents & POLLIN) {
-          char *buf = calloc(MB_1, sizeof(char));
-          if (read(fds[i].fd, buf, MB_1) < 0)
-            perror("log,POLLIN,read");
-          printf("%s", buf);
+      for (int i = curr_level - 1; i > -1; i--) {
+        if (fds[i].revents & (POLLIN | POLLPRI)) {
+          char *buf = calloc(KB_1 * 4, sizeof(char));
+          buf == NULL ? perror("log,calloc") : true;
+          if (read(fds[i].fd, buf, KB_1 * 4) > 0)
+            printf("%s", buf);
+          else
+            perror("log,read");
           free(buf);
-        }
-
-        if (fds[i].revents & POLLPRI) {
-          char *buf = calloc(MB_1, sizeof(char));
-          if (read(fds[i].fd, buf, MB_1) < 0)
-            perror("log,POLLPRI,read");
-          printf("!%s", buf);
-          free(buf);
-        }
-
-        if (fds[i].revents & POLLHUP)
-          fprintf(stdout, "Error fd:%d, disconnected\n", i);
+        } else if (fds[i].revents & POLLHUP)
+          fprintf(stderr, "Error fd:%d, disconnected\n", i);
       }
     }
     if (poll_ret == -1) {
@@ -65,22 +60,25 @@ void __init_dbg() {
   fds[3].events = POLLIN | POLLPRI;
 }
 
-int init_logger(const ELogLevel lvl, const char *fn) {
-  if (lvl == LNONE) {
+int init_logger(const logConf_t *conf) {
+  if (conf->lvl == LNONE) {
     return 1;
   }
-  if (fn != NULL) {
-    main_fp = fopen(fn, "w");
+  if (conf->fn != NULL) {
+    main_fp = fopen(conf->fn, "w");
+  } else if (conf->fp != stdout) {
+    main_fp = conf->fp;
   } else {
     main_fp = NULL;
   }
-  curr_level = lvl;
+
+  curr_level = conf->lvl;
   fds = calloc(curr_level, sizeof(struct pollfd));
   if (fds == NULL) {
     perror("log, Malloc");
     return -1;
   }
-  switch (lvl) {
+  switch (conf->lvl) {
   case LNONE:
     break;
   case ERR:

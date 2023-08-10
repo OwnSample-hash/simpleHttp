@@ -23,9 +23,16 @@ typedef enum __log_level {
   DBG,
 } ELogLevel;
 
+typedef struct __Log_conf {
+  ELogLevel lvl;
+  const char *fn;
+  FILE *fp;
+  bool errQuit;
+} logConf_t;
+
 extern ELogLevel curr_level;
 extern struct pollfd *fds;
-int init_logger(const ELogLevel lvl, const char *fn);
+int init_logger(const logConf_t *conf);
 void handle();
 
 #endif // !__LOGGER_HTTP__

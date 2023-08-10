@@ -1,8 +1,8 @@
 #include "parser.h"
+#include "bytes.h"
 #include "itoa.h"
 #include "linkList.h"
 #include "mime_guess.h"
-#include <stdio.h>
 
 void erep(int client_fd) {
   static const char payload[] = "HTTP/1.1 404 Not Found\r\n"
@@ -78,21 +78,21 @@ int parseGet(char *payload, size_t spayload, int client_fd) {
   int cntLen = strlen(cntTyp);
   char *str_size = TO_BASE(src_stat.st_size, 10);
   int len_strelen = strlen(str_size);
-  char *header_payload = calloc(20 + len_strelen + strlen(HEADER) + cntLen,
-                                sizeof(char)); // "Content-Length: "
-  snprintf(header_payload, 20 + len_strelen + strlen(HEADER) + cntLen,
-           "%s%s %jd\r\n%s\r\n", HEADER, "Content-Length:", src_stat.st_size,
+  char *header_payload =
+      calloc(21 + len_strelen + strlen(HEADER) + cntLen, sizeof(char));
+  snprintf(header_payload, 21 + len_strelen + strlen(HEADER) + cntLen,
+           "%s%s %jd\r\n%s", HEADER, "Content-Length:", src_stat.st_size,
            cntTyp);
   write(client_fd, header_payload, strlen(header_payload));
   write(client_fd, "\r\n", 2);
 
-  char *buf = calloc(20971520, sizeof(char));
+  char *buf = calloc(2 * MB_10, sizeof(char));
   size_t bytes_read;
-  while ((bytes_read = fread(buf, sizeof(char), 20971520, fp)) > 0) {
+  while ((bytes_read = fread(buf, sizeof(char), 2 * MB_10, fp)) > 0) {
     write(client_fd, buf, bytes_read);
   }
 
-  write(client_fd, "\r\n", 2);
+  /*   write(client_fd, "\r\n", 2); */
   if (feof(fp))
     _INFO("eof hit on %s\n", fn);
   fclose(fp);

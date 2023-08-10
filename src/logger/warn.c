@@ -3,7 +3,7 @@
 int pipe_warn[2];
 FILE *pipeW_writefp;
 FILE *pipeW_readfp;
-bool inited_w = true;
+bool inited_w = false;
 
 void warn_with_line_num(const char *pre, const char *__file__,
                         const int __line__, const char *msg, ...) {
