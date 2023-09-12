@@ -10,7 +10,6 @@
 #include <signal.h>
 #include <stdint.h>
 #include <stdio.h>
-#include <sys/wait.h>
 #include <unistd.h>
 
 #ifndef GIT_COMMIT
@@ -22,24 +21,12 @@ int main(int argc, char **argv) {
 
 #ifndef NO_LOG
   logConf_t logConf = {.lvl = DBG, .errQuit = false};
-  if (init_logger(&logConf) == 0) {
-    printf("main pid:%d\n", getpid());
-    pid_t log_pid = fork();
-    if (log_pid == 0) {
-      printf("logger pid:%d\n", getpid());
-      if (dup2(STDOUT_FILENO, 1) == -1) {
-        perror("log, dup2");
-        return -1;
-      }
-      handle();
-      return 0;
-    } else if (log_pid == -1) {
-      perror("log,fork");
-    }
+  if (init_logger(&logConf) != 0) {
+    return 1;
   }
 #else
   printf("Not inting logging shit\n");
-  logConf_t logConf = {.lvl = LNONE, .fn = NULL, .errQuit = false};
+  logConf_t logConf = {.lvl = LNONE, .fn = NULL, .fp = NULL, .errQuit = false};
   init_logger(&logConf);
 #endif
 
@@ -48,26 +35,11 @@ int main(int argc, char **argv) {
   _INFO("http://127.0.0.1:%s/\n", (argc != 2) ? "8080" : argv[1]);
   createSocket(argc, argv);
   _INFO("Listening on port %d\n", server_port);
-  while (1) {
-    client_len = sizeof(client_address);
-    client_sockfd =
-        accept(server_sockfd, (struct sockaddr *)&client_address, &client_len);
-    if (client_sockfd == -1) {
-      perror("client accept");
-    }
-    pid_t pid = fork();
-    if (pid == 0) {
-      if (dup2(STDOUT_FILENO, 1) == -1) {
-        perror("dup2");
-        return -1;
-      }
-      threadJob(client_sockfd);
-      close(client_sockfd);
-      exit(0);
-    } else if (pid == -1) {
-      perror("handler,fork");
-    }
-    wait(NULL);
-  }
+  pid_t serve_p = fork();
+  serve_p == 0    ? serve()
+  : serve_p == -1 ? perror("serve,fork")
+                  : _INFO("serve pid %d", serve_p);
+  handle();
+  wait(NULL);
   return 0;
 }

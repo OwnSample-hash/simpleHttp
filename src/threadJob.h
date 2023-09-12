@@ -4,14 +4,10 @@
 #include "logger/logger.h"
 #include "parser.h"
 #include "socket.h"
-#include <pthread.h>
+#include <sys/wait.h>
 
+int serve();
 void threadJob(int client_sockfd);
 extern char buf[BUFSIZ];
-
-typedef struct __threads {
-  pthread_t *data;
-  struct __threads *next;
-} *threads_t;
 
 #endif

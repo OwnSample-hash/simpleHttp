@@ -12,7 +12,7 @@ extern int pipe_err[2];
 extern FILE *pipeE_writefp;
 extern FILE *pipeE_readfp;
 void err(char *msg, ...);
-int init_err();
+int init_err(bool quit);
 void err_with_line_num(const char *pre, const char *__file__,
                        const int __line__, const char *msg, ...);
 

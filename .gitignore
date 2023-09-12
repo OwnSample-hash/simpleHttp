@@ -2,3 +2,4 @@ build/
 simple
 server/*.png
 server/*.jpg
+make.dir

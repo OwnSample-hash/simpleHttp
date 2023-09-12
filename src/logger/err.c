@@ -4,6 +4,7 @@ int pipe_err[2];
 FILE *pipeE_writefp;
 FILE *pipeE_readfp;
 bool inited_e = false;
+bool _quit = true;
 
 void err_with_line_num(const char *pre, const char *__file__,
                        const int __line__, const char *msg, ...) {
@@ -28,13 +29,14 @@ void err(char *msg, ...) {
   va_end(ap);
 }
 
-int init_err() {
+int init_err(bool quit) {
+  _quit = quit;
   if (pipe(pipe_err) != 0) {
     perror("pipe, err");
     return -1;
   }
-  inited_e = true;
   pipeE_writefp = fdopen(pipe_err[1], "w");
   pipeE_readfp = fdopen(pipe_err[0], "r");
+  inited_e = true;
   return 0;
 }

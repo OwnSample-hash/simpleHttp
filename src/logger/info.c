@@ -1,4 +1,5 @@
 #include "info.h"
+#include <sys/socket.h>
 
 int pipe_info[2];
 FILE *pipeI_writefp;
@@ -33,8 +34,8 @@ int init_info() {
     perror("pipe, info");
     return -1;
   }
-  inited_i = true;
   pipeI_writefp = fdopen(pipe_info[1], "w");
   pipeI_readfp = fdopen(pipe_info[0], "r");
+  inited_i = true;
   return 0;
 }

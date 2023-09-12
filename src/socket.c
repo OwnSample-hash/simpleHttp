@@ -39,6 +39,7 @@ int createSocket(int argc, char **argv) {
     perror("bind");
     return 1;
   }
+
   if (listen(server_sockfd, 5) == -1) {
     perror("listen");
     return 1;

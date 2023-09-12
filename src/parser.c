@@ -28,6 +28,7 @@ splits_t splitOn_c(char *str, const char *delimiter) {
     insertNode(&head, token);
     token = strtok(NULL, delimiter);
   }
+
   return head;
 }
 
@@ -87,7 +88,7 @@ int parseGet(char *payload, size_t spayload, int client_fd) {
   write(client_fd, "\r\n", 2);
 
   char *buf = calloc(2 * MB_10, sizeof(char));
-  size_t bytes_read;
+  size_t bytes_read = 0;
   while ((bytes_read = fread(buf, sizeof(char), 2 * MB_10, fp)) > 0) {
     write(client_fd, buf, bytes_read);
   }

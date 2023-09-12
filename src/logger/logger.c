@@ -1,11 +1,9 @@
 #include "logger.h"
-#include <linux/limits.h>
-#include <stdio.h>
-#include <string.h>
 
 ELogLevel curr_level;
 struct pollfd *fds;
 FILE *main_fp;
+bool __quit;
 
 void handle() {
   if (curr_level == LNONE)
@@ -18,23 +16,24 @@ void handle() {
         if (fds[i].revents & (POLLIN | POLLPRI)) {
           char *buf = calloc(KB_1 * 4, sizeof(char));
           buf == NULL ? perror("log,calloc") : true;
-          if (read(fds[i].fd, buf, KB_1 * 4) > 0)
-            printf("%s", buf);
+          int readb = 0;
+          if ((readb = read(fds[i].fd, buf, KB_1 * 4)) > 0)
+            fprintf(main_fp, "%s", buf);
           else
             perror("log,read");
+          buf[0] = 0;
           free(buf);
         } else if (fds[i].revents & POLLHUP)
           fprintf(stderr, "Error fd:%d, disconnected\n", i);
       }
     }
-    if (poll_ret == -1) {
-      perror("log, poll");
-    }
+    if (poll_ret == -1)
+      perror("log,poll");
   }
 }
 
 void __init_err() {
-  init_err();
+  init_err(__quit);
   fds[0].fd = pipe_err[0];
   fds[0].events = POLLIN | POLLPRI;
 }
@@ -66,11 +65,21 @@ int init_logger(const logConf_t *conf) {
   }
   if (conf->fn != NULL) {
     main_fp = fopen(conf->fn, "w");
-  } else if (conf->fp != stdout) {
+    if (!main_fp) {
+      perror("log,fn,fopen");
+      fprintf(stderr, "Faling back to stdout!\n");
+      main_fp = stdout;
+    }
+  } else if (conf->fp != NULL) {
     main_fp = conf->fp;
   } else {
-    main_fp = NULL;
+    main_fp = stdout;
   }
+  if (!main_fp) {
+    fprintf(stderr, "main_fp = 0x0\n");
+    return 1;
+  }
+  __quit = conf->errQuit;
 
   curr_level = conf->lvl;
   fds = calloc(curr_level, sizeof(struct pollfd));

@@ -5,8 +5,17 @@ CLNFLAGS = -lmagic
 
 BIN = simple
 
+SRC_DIR = src/
+_MAKE_DIR = make.dir
+
+.PHONY: init
+init:
+	mkdir -p ${_MAKE_DIR}
+	cp ${SRC_DIR} ${_MAKE_DIR} -r
+	md5sum `find src/ -type f` > ${_MAKE_DIR}/md5.sum
+
 .PHONY: all
-all: prolog link
+all: prolog init link
 	@echo Done bulding
 
 prolog:
@@ -23,7 +32,7 @@ clean:
 build: clean
 	mkdir -p build/src/logger
 	@for file in `find src/ -name "*.c"`; do\
-		printf "${CC} -c %-20s %-30s %s\n" $$file "-o build/$$file.o" '${CFLAGS}';\
+		printf "%s -c %-20s %-30s %s\n" ${CC} $$file "-o build/$$file.o" '${CFLAGS}';\
 		${CC} -c $$file -o build/$$file.o ${CFLAGS};\
 	done
 	@for file in `find src/ -name "*.h"`; do\
@@ -31,14 +40,10 @@ build: clean
 		cp $$file build/$$file;\
 	done
 
-objects = $(shell find build/src/ -name "*.o" | sed "s#build/##")
-
 link: build
-	@cd build;\
-	${CLN} -o ${BIN} ${CLNFLAGS} $(objects) 
 	@printf "${CLN} -o ${BIN} ${CLNFLAGS} \n"
-	@for file in $(objects); do\
+	@for file in `find build/src/ -name "*.o"`; do\
 		printf "\t%s\n" $$file;\
 	done
-	cp build/simple .
+	@${CLN} -o ${BIN} ${CLNFLAGS} `find build/src/ -name "*.o"`
 
