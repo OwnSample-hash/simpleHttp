@@ -1,49 +1,41 @@
 CC = clang
-CLN = clang
 CFLAGS = -ggdb -DGIT_COMMIT=\"$(shell git rev-parse --short HEAD)\"
-CLNFLAGS = -lmagic
+LDFLAGS = -lmagic
 
 BIN = simple
 
-SRC_DIR = src/
 _MAKE_DIR = make.dir
+SRC_DIR = src
+BUILD_DIR = ${_MAKE_DIR}/build
 
-.PHONY: init
-init:
-	mkdir -p ${_MAKE_DIR}
-	cp ${SRC_DIR} ${_MAKE_DIR} -r
-	md5sum `find src/ -type f` > ${_MAKE_DIR}/md5.sum
+CSRCS = $(shell find ${SRC_DIR} -type f -name "*.c")
 
-.PHONY: all
-all: prolog init link
+OBJS = $(patsubst $(SRC_DIR)/%.c, $(BUILD_DIR)/%.o, $(CSRCS))
+
+all: prolog ${BIN}
 	@echo Done bulding
 
 prolog:
 	@echo CC=${CC}
-	@echo CLN=${CLN}
 	@echo CFLAGS=${CFLAGS}
 	@echo BIN=${BIN}
+	@echo BUILD_DIR=${BUILD_DIR}
+	@echo FULL_BD=$(patsubst $(SRC_DIR)%, $(BUILD_DIR)%, $(shell find $(SRC_DIR) -type d))
+	@echo OBJS=${OBJS}
 	@echo
 
+
+$(BUILD_DIR):
+	mkdir -p $(patsubst $(SRC_DIR)%, $(BUILD_DIR)%, $(shell find $(SRC_DIR) -type d))
+
+
+$(BUILD_DIR)/%.o: $(SRC_DIR)/%.c | $(BUILD_DIR)
+	$(CC) $(CFLAGS) -c $< -o $@
+
+
+$(BIN): $(OBJS)
+	$(CC) $(OBJS) $(LDFLAGS) -o $(BIN)
+
 clean:
-	rm build -rf
+	rm ${BUILD_DIR} -rf
 	rm simple -f
-
-build: clean
-	mkdir -p build/src/logger
-	@for file in `find src/ -name "*.c"`; do\
-		printf "%s -c %-20s %-30s %s\n" ${CC} $$file "-o build/$$file.o" '${CFLAGS}';\
-		${CC} -c $$file -o build/$$file.o ${CFLAGS};\
-	done
-	@for file in `find src/ -name "*.h"`; do\
-		printf "cp %-20s %s\n" $$file build/$$file;\
-		cp $$file build/$$file;\
-	done
-
-link: build
-	@printf "${CLN} -o ${BIN} ${CLNFLAGS} \n"
-	@for file in `find build/src/ -name "*.o"`; do\
-		printf "\t%s\n" $$file;\
-	done
-	@${CLN} -o ${BIN} ${CLNFLAGS} `find build/src/ -name "*.o"`
-
