@@ -6,7 +6,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-#include "logger/logger.h"
+#include "log/log.h"
 
 void ctrl_c_h(int sigframe);
 

@@ -1,5 +1,5 @@
 CC = clang
-CFLAGS = -ggdb -DGIT_COMMIT=\"$(shell git rev-parse --short HEAD)\"
+CFLAGS = -ggdb -DGIT_COMMIT=\"$(shell git rev-parse --short HEAD)\" -DLOG_USE_COLOR=1
 LDFLAGS = -lmagic
 
 BIN = simple

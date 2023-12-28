@@ -13,4 +13,10 @@
 #define GB_10 10737418240
 #define GB_100 107374182400
 
+#define ASCII_A 0x41
+#define ASCII_Z 0x41 + 0x19
+#define ASCII_SPC 0x20
+#define ASCII_AL ASCII_A + ASCII_SPC
+#define ASCII_ZL ASCII_Z + ASCII_SPC
+
 #endif // !__BYTES__HTTP_

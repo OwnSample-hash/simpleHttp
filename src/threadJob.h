@@ -1,7 +1,8 @@
 #ifndef __THREADJOB_HTTP__
 #define __THREADJOB_HTTP__
 
-#include "logger/logger.h"
+#include "bytes.h"
+#include "log/log.h"
 #include "parser.h"
 #include "socket.h"
 #include <sys/wait.h>

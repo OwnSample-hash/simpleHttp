@@ -11,8 +11,8 @@ unsigned short server_port = 8080u;
 int createSocket(int argc, char **argv) {
   if (argc > 1)
     server_port = strtol(argv[1], NULL, 10);
-  else
-    printf("Using default port: %d\n", server_port);
+  // else
+  //   printf("Using default port: %d\n", server_port);
   protoent = getprotobyname(protoname);
   if (protoent == NULL) {
     perror("getprotobyname");
@@ -45,4 +45,18 @@ int createSocket(int argc, char **argv) {
     return 1;
   }
   return 0;
+}
+
+void getAddressAndPort(struct sockaddr *addr, char *ipBuffer,
+                       size_t ipBufferLength, int *port) {
+  if (addr->sa_family == AF_INET) { // Check if it's an IPv4 address
+    struct sockaddr_in *ipv4 = (struct sockaddr_in *)addr;
+    // Convert the IP address from binary to a string
+    inet_ntop(AF_INET, &(ipv4->sin_addr), ipBuffer, ipBufferLength);
+    // Extract the port
+    *port = ntohs(ipv4->sin_port);
+  } else {
+    fprintf(stderr, "Unsupported address family\n");
+    exit(EXIT_FAILURE);
+  }
 }

@@ -1,13 +1,15 @@
 #include "threadJob.h"
+#include "socket.h"
+#include <netinet/in.h>
 
 void threadJob(int client_sockfd) {
   char buf[KB_1 * 8];
-  _INFO("Serving client, fd:%d\n", client_sockfd);
+  log_info("Serving client, fd:%d", client_sockfd);
   nbytes_read = read(client_sockfd, buf, BUFSIZ);
   if (parseReq(buf, nbytes_read, client_sockfd) != 0)
     erep(client_sockfd);
   close(client_sockfd);
-  _INFO("Connection closed on fd:%d exiting\n", client_sockfd);
+  log_info("Connection closed on fd:%d exiting", client_sockfd);
   exit(0);
 }
 
@@ -19,6 +21,11 @@ int serve() {
     if (client_sockfd == -1) {
       perror("client accept");
     }
+    char ipBuffer[INET_ADDRSTRLEN];
+    int port;
+    getAddressAndPort((struct sockaddr *)&client_address, ipBuffer,
+                      INET_ADDRSTRLEN, &port);
+    log_info("Client %s:%d A.K.A %d", ipBuffer, port, client_sockfd);
     pid_t pid = fork();
     if (pid == 0) {
       // if (dup2(STDOUT_FILENO, 1) == -1) {
@@ -29,7 +36,7 @@ int serve() {
     } else if (pid == -1) {
       perror("handler,fork");
     } else
-      _DBG("serve_pid:%d\n", pid);
+      log_debug("serve_pid:%d", pid);
     wait(NULL);
   }
   return 0;
