@@ -2,6 +2,7 @@
 #include "bytes.h"
 #include "itoa.h"
 #include "linkList.h"
+#include "log/log.h"
 #include "mime_guess.h"
 
 void erep(int client_fd) {
@@ -59,7 +60,12 @@ int parseReq(char *request, size_t srequest, int client_fd) {
 }
 
 int parseGet(char *payload, size_t spayload, int client_fd) {
-  char *fn = calloc(spayload + 1, sizeof(char));
+  char *fn = calloc(spayload + 2, sizeof(char));
+  if (fn == NULL) {
+    perror("calloc");
+    log_fatal("CALLOC FAILED");
+    return -1;
+  }
   strncpy(fn, "./server", 8);
   strncatskip(fn, payload, spayload, 4);
   log_info("Opening file: '%s'", fn);
@@ -70,7 +76,7 @@ int parseGet(char *payload, size_t spayload, int client_fd) {
   }
 
   const char HEADER[] = "HTTP/1.1 200 Ok\r\nConnection: close\r\n";
-  struct stat src_stat;
+  struct stat src_stat = {0};
   if (stat(fn, &src_stat)) {
     perror("stat");
     return 1;
@@ -86,16 +92,25 @@ int parseGet(char *payload, size_t spayload, int client_fd) {
            cntTyp);
   write(client_fd, header_payload, strlen(header_payload));
   write(client_fd, "\r\n", 2);
+  src_stat = (struct stat){0};
 
   char *buf = calloc(2 * MB_10, sizeof(char));
+  if (buf == NULL) {
+    perror("praseGet,calloc");
+    log_fatal("prasGet,calloc");
+    return -1;
+    fclose(fp);
+    free(fn);
+    free(header_payload);
+    free(cntTyp);
+  }
   size_t bytes_read = 0;
   while ((bytes_read = fread(buf, sizeof(char), 2 * MB_10, fp)) > 0) {
     write(client_fd, buf, bytes_read);
   }
 
-  /*   write(client_fd, "\r\n", 2); */
   if (feof(fp))
-    log_info("eof hit on %s", fn);
+    log_trace("eof hit on %s", fn);
   fclose(fp);
   free(buf);
   free(fn);
