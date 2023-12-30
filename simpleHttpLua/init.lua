@@ -1,5 +1,3 @@
-Funcs = Funcs or {}
-
 ---Route registration wrapper
 ---@param path string
 ---@param meth string
@@ -10,14 +8,29 @@ function Add_Route(path, meth, fn)
   Funcs[path] = fn
 end
 
-Add_Route('/hello', GET, "<html><h1>Hello</h1></html>")
+LOG_TRACE = 0
+LOG_DEBUG = 1
+LOG_INFO = 2
+LOG_WARN = 3
+LOG_ERROR = 4
+LOG_FATAL = 5
 
-Add_Route("/test", GET, function()
-  local file = io.open('./server/test.html', "r")
-  if not file then
-    return "<html><h1>404</h1></html>"
+---Exposes the log functions from C
+---@param lvl number
+---@param fmt string
+---@param ... string
+---@return nil
+function log(lvl, fmt, ...)
+  local caller = debug.getinfo(2)
+  if caller == nil then
+    log_log(1, "No caller")
+    print("NO CALLER")
   end
-  local lines = file:read("*a")
-  file:close()
-  return lines
-end)
+  log_log(lvl, caller.short_src, caller.currentline, fmt, ...)
+end
+
+if pcall(function()
+      require 'routes'
+    end) then
+  log(LOG_INFO, "routes are infact exists")
+end

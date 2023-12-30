@@ -15,4 +15,9 @@ void lua_init();
 // p3 retn function|str -1
 int lua_reg_route(lua_State *L);
 
+// p1 path str -3
+// p2 meth str -2
+// p3 retn function|str -1
+int lua_log_log(lua_State *L);
+
 #endif // !__BYTES__HTTP_
