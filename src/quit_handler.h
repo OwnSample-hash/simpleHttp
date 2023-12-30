@@ -7,6 +7,7 @@
 #include <unistd.h>
 
 #include "log/log.h"
+#include "lua/lua_.h"
 
 void ctrl_c_h(int sigframe);
 

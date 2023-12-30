@@ -3,6 +3,7 @@
 #include "itoa.h"
 #include "linkList.h"
 #include "log/log.h"
+#include "lua/virtual_path.h"
 #include "mime_guess.h"
 
 void erep(int client_fd) {
@@ -52,19 +53,24 @@ int parseReq(char *request, size_t srequest, int client_fd) {
   payload = calloc(payload_len + 2, sizeof(char));
   snprintf(payload, payload_len + 2, "%s %s", wordsGet->data,
            wordsGet->next->data);
+  int ret = parseGet(payload, strlen(payload), client_fd);
+  if (ret != OK_GET) {
+    log_trace("praseGet(...) != OK_GET is true");
+    log_info("Treating path (%s) as a virtual path", wordsGet->next->data);
+    ret = virtual_path_resolv(wordsGet->next->data, client_fd);
+  }
   freeList(lines);
   freeList(wordsGet);
-  int ret = parseGet(payload, strlen(payload), client_fd);
   free(payload);
   return ret;
 }
 
-int parseGet(char *payload, size_t spayload, int client_fd) {
+parseGet_ parseGet(char *payload, size_t spayload, int client_fd) {
   char *fn = calloc(spayload + 2, sizeof(char));
   if (fn == NULL) {
     perror("calloc");
     log_fatal("CALLOC FAILED");
-    return -1;
+    return CALLOC;
   }
   strncpy(fn, "./server", 8);
   strncatskip(fn, payload, spayload, 4);
@@ -72,24 +78,26 @@ int parseGet(char *payload, size_t spayload, int client_fd) {
   FILE *fp = fopen(fn, "rb");
   if (fp == NULL) {
     perror("fopen");
-    return 1;
+    return NOT_FOUND;
   }
 
-  const char HEADER[] = "HTTP/1.1 200 Ok\r\nConnection: close\r\n";
   struct stat src_stat = {0};
   if (stat(fn, &src_stat)) {
     perror("stat");
-    return 1;
+    return NO_STAT;
   }
-  char *cntTyp = ContentType(fn);
+  char *cntTyp = ContentType(M_FILE, fn);
   int cntLen = strlen(cntTyp);
   char *str_size = TO_BASE(src_stat.st_size, 10);
   int len_strelen = strlen(str_size);
+  // first param const int is 21 working should be 37
   char *header_payload =
-      calloc(21 + len_strelen + strlen(HEADER) + cntLen, sizeof(char));
-  snprintf(header_payload, 21 + len_strelen + strlen(HEADER) + cntLen,
+      calloc(37 + len_strelen + strlen(HEADER) + cntLen, sizeof(char));
+
+  snprintf(header_payload, 37 + len_strelen + strlen(HEADER) + cntLen,
            "%s%s %jd\r\n%s", HEADER, "Content-Length:", src_stat.st_size,
            cntTyp);
+
   write(client_fd, header_payload, strlen(header_payload));
   write(client_fd, "\r\n", 2);
   src_stat = (struct stat){0};
@@ -98,11 +106,11 @@ int parseGet(char *payload, size_t spayload, int client_fd) {
   if (buf == NULL) {
     perror("praseGet,calloc");
     log_fatal("prasGet,calloc");
-    return -1;
     fclose(fp);
     free(fn);
     free(header_payload);
     free(cntTyp);
+    return CALLOC;
   }
   size_t bytes_read = 0;
   while ((bytes_read = fread(buf, sizeof(char), 2 * MB_10, fp)) > 0) {
@@ -116,7 +124,7 @@ int parseGet(char *payload, size_t spayload, int client_fd) {
   free(fn);
   free(header_payload);
   free(cntTyp);
-  return 0;
+  return OK_GET;
 }
 
 void strncatskip(char *dst, const char *src, size_t count, size_t offset) {
