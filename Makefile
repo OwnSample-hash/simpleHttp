@@ -1,6 +1,6 @@
 CC = clang
-CFLAGS = -ggdb -DGIT_COMMIT=\"$(shell git rev-parse --short HEAD)\" -DLOG_USE_COLOR=1
-LDFLAGS = -lmagic
+CFLAGS = -ggdb -DGIT_COMMIT=\"$(shell git rev-parse --short HEAD)\" -DLOG_USE_COLOR=1 -std=c2x
+LDFLAGS = -lmagic -llua
 
 BIN = simpleHttp
 
