@@ -5,9 +5,6 @@
 #include "socket.h"
 #include "threadJob.h"
 #include <signal.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <time.h>
 #include <unistd.h>
 
 #ifndef GIT_COMMIT
@@ -29,11 +26,7 @@ int main(int argc, char **argv) {
   log_info("http://127.0.0.1:%s/", (argc != 2) ? "8080" : argv[1]);
   createSocket(argc, argv);
   log_info("Listening on port %d", server_port);
-  pid_t serve_p = fork();
-  serve_p == 0    ? serve()
-  : serve_p == -1 ? perror("serve,fork")
-                  : log_info("serve pid %d", serve_p);
-  // handle();
-  wait(NULL);
+  log_info("Starting to serve");
+  serve();
   return 0;
 }
