@@ -13,7 +13,7 @@ char *ContentType(m_type type, const char *payload) {
     mime = magic_file(magic, payload);
     break;
   case M_BUFFER:
-    log_trace("M_BUFFER for %s", payload);
+    log_trace("M_BUFFER for __suppressd__");
     mime = magic_buffer(magic, payload, strlen(payload));
     break;
   default:
