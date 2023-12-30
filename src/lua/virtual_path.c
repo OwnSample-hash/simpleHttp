@@ -1,5 +1,4 @@
 #include "virtual_path.h"
-#include "../itoa.h"
 #include "../mime_guess.h"
 #include "../parser.h"
 #include <lua5.2/lauxlib.h>
