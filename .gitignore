@@ -3,3 +3,4 @@ simple
 server/*.png
 server/*.jpg
 make.dir
+simpleHttp

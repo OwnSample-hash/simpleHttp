@@ -2,7 +2,7 @@ CC = clang
 CFLAGS = -ggdb -DGIT_COMMIT=\"$(shell git rev-parse --short HEAD)\" -DLOG_USE_COLOR=1
 LDFLAGS = -lmagic
 
-BIN = simple
+BIN = simpleHttp
 
 _MAKE_DIR = make.dir
 SRC_DIR = src
@@ -12,7 +12,7 @@ CSRCS = $(shell find ${SRC_DIR} -type f -name "*.c")
 
 OBJS = $(patsubst $(SRC_DIR)/%.c, $(BUILD_DIR)/%.o, $(CSRCS))
 
-all: prolog ${BIN}
+all: ${BIN}
 	@echo Done bulding
 
 prolog:
