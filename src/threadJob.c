@@ -4,7 +4,7 @@
 
 void threadJob(int client_sockfd) {
   char buf[KB_1 * 8];
-  log_info("Serving client, fd:%d", client_sockfd);
+  log_info("Serving client fd:%d", client_sockfd);
   nbytes_read = read(client_sockfd, buf, BUFSIZ);
   if (parseReq(buf, nbytes_read, client_sockfd) != 0)
     erep(client_sockfd);
@@ -25,7 +25,7 @@ int serve() {
     int port;
     getAddressAndPort((struct sockaddr *)&client_address, ipBuffer,
                       INET_ADDRSTRLEN, &port);
-    log_info("Client %s:%d A.K.A %d", ipBuffer, port, client_sockfd);
+    log_info("Client %s:%d A.K.A %d fd", ipBuffer, port, client_sockfd);
     pid_t pid = fork();
     if (pid == 0) {
       // if (dup2(STDOUT_FILENO, 1) == -1) {
