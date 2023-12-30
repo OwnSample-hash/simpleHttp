@@ -6,6 +6,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-char *ContentType(const char *fn);
+typedef enum { M_FILE, M_BUFFER } m_type;
+
+char *ContentType(m_type type, const char *payload);
 
 #endif // !__MIME_GUESS_HTTP__
