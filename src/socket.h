@@ -19,7 +19,8 @@ extern ssize_t nbytes_read;
 extern struct sockaddr_in client_address, server_address;
 extern unsigned short server_port;
 
-int createSocket(int argc, char **argv);
+[[deprecated("Needs a redo incredibly cursed impl")]] int
+createSocket(int argc, char **argv);
 void getAddressAndPort(struct sockaddr *addr, char *ipBuffer,
                        size_t ipBufferLength, int *port);
 #endif /* __SOCKET_SHTTP_ */
