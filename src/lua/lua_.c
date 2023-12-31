@@ -43,10 +43,8 @@ int lua_reg_route(lua_State *L) {
   const char *meth = lua_tostring(L, -2);
   const char *payl;
   if (lua_isfunction(L, -1)) {
-    log_trace("Function");
     payl = "func";
   } else {
-    log_trace("Str");
     payl = lua_tostring(L, -1);
   }
   log_debug("path:%s\tmeth:%s\tpayl:%s", path, meth, payl);
