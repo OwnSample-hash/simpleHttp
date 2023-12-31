@@ -23,12 +23,21 @@ int main(int argc, char **argv) {
   log_set_quiet(1);
 #endif
 
+  new_sock ns = {.addr = "127.0.0.1",
+                 .port = 8080,
+                 .domain = AF_INET,
+                 .listen = 5,
+                 .proto = HTTP};
+
   log_info("simpleHTTP-%s HTTP/1.1", GIT_COMMIT);
-  log_debug("http://127.0.0.1:%s/",
-            (argc != 2) ? "8080" : argv[1]); // talkin about cursed impl
-  createSocket(argc, argv);
+  int sfd = createSocket(&ns);
+  if (sfd == -1) {
+    log_fatal("Check above for more info");
+    log_fatal("Socket creation failed quitting...");
+    return -1;
+  }
   lua_init();
-  log_info("Listening on port %d", server_port);
-  serve();
+  log_info("Url: %s://%s:%d/", prototoa(ns.proto), ns.addr, ns.port);
+  serve(sfd);
   return 0;
 }

@@ -1,11 +1,10 @@
 #include "threadJob.h"
 #include "socket.h"
-#include <netinet/in.h>
 
 void threadJob(int client_sockfd) {
   char buf[KB_1 * 8];
   log_info("Serving client fd:%d", client_sockfd);
-  nbytes_read = read(client_sockfd, buf, BUFSIZ);
+  int nbytes_read = read(client_sockfd, buf, BUFSIZ);
   if (parseReq(buf, nbytes_read, client_sockfd) != 0)
     erep(client_sockfd);
   close(client_sockfd);
@@ -13,11 +12,12 @@ void threadJob(int client_sockfd) {
   exit(0);
 }
 
-int serve() {
+int serve(int sfd) {
   while (1) {
-    client_len = sizeof(client_address);
-    client_sockfd =
-        accept(server_sockfd, (struct sockaddr *)&client_address, &client_len);
+    struct sockaddr_in client_address;
+    socklen_t client_len = sizeof(client_address);
+    int client_sockfd =
+        accept(sfd, (struct sockaddr *)&client_address, &client_len);
     if (client_sockfd == -1) {
       perror("client accept");
     }

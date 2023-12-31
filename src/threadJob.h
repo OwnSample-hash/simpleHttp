@@ -7,7 +7,7 @@
 #include "socket.h"
 #include <sys/wait.h>
 
-int serve();
+int serve(int sfd);
 void threadJob(int client_sockfd);
 extern char buf[BUFSIZ];
 

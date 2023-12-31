@@ -1,5 +1,6 @@
 #ifndef __SOCKET_SHTTP_
 #define __SOCKET_SHTTP_
+#include "log/log.h"
 #include <arpa/inet.h>
 #include <netdb.h>
 #include <netinet/in.h>
@@ -11,16 +12,34 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-extern char protoname[];
-extern struct protoent *protoent;
-extern int enable, i, newline_found, server_sockfd, client_sockfd;
-extern socklen_t client_len;
-extern ssize_t nbytes_read;
-extern struct sockaddr_in client_address, server_address;
-extern unsigned short server_port;
+typedef enum { HTTP, HTTPS } protocol;
 
-[[deprecated("Needs a redo incredibly cursed impl")]] int
-createSocket(int argc, char **argv);
+typedef struct {
+  const char *full_key;
+} ssl_conf;
+
+typedef struct {
+  const char *addr;
+  const short int port;
+  const int domain;
+  const int listen;
+  const protocol proto;
+  const ssl_conf *ssl_conf;
+} new_sock;
+
+#define MAX_OPEN_SOCKETS 2
+
+typedef struct {
+  int fd;
+  const new_sock *conf;
+} open_socket;
+
+extern open_socket open_sockets[MAX_OPEN_SOCKETS];
+extern int open_sockets_len;
+
+int createSocket(const new_sock *sock);
 void getAddressAndPort(struct sockaddr *addr, char *ipBuffer,
                        size_t ipBufferLength, int *port);
+
+const char *prototoa(const protocol proto);
 #endif /* __SOCKET_SHTTP_ */

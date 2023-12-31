@@ -1,62 +1,76 @@
 #include "socket.h"
+#include "log/log.h"
+#include <arpa/inet.h>
+#include <netinet/in.h>
+#include <sys/socket.h>
+#include <unistd.h>
 
-char protoname[] = "tcp";
-struct protoent *protoent;
-int enable = 1, i, newline_found = 0, server_sockfd, client_sockfd;
-socklen_t client_len;
-ssize_t nbytes_read;
-struct sockaddr_in client_address, server_address;
-unsigned short server_port = 8080u;
-
-int createSocket(int argc, char **argv) {
-  if (argc > 1)
-    server_port = strtol(argv[1], NULL, 10);
-  // else
-  //   printf("Using default port: %d\n", server_port);
-  protoent = getprotobyname(protoname);
-  if (protoent == NULL) {
-    perror("getprotobyname");
-    return 1;
+int createSocket(const new_sock *sock) {
+  log_trace("open_sockets_len is %d", open_sockets_len);
+  if (open_sockets_len > MAX_OPEN_SOCKETS - 1) {
+    log_fatal("Cannot create more socket limit reached");
+    return -1;
   }
-
-  server_sockfd = socket(AF_INET, SOCK_STREAM, protoent->p_proto);
-  if (server_sockfd == -1) {
+  int sfd;
+  log_debug("Creating socket %d domain, %s:%d address and will listen for %d "
+            "connection",
+            sock->domain, sock->addr, sock->port, sock->listen);
+  if ((sfd = socket(sock->domain, SOCK_STREAM, 0)) == -1) {
+    log_fatal("Failed to creat socket");
     perror("socket");
-    return 1;
+    return -1;
   }
+  log_trace("Socket created fd:%d", sfd);
 
-  if (setsockopt(server_sockfd, SOL_SOCKET, SO_REUSEADDR, &enable,
-                 sizeof(enable)) < 0) {
-    perror("setsockopt(SO_REUSEADDR) failed");
-    return 1;
+  struct in_addr in_addr = {0};
+  if (!inet_pton(sock->domain, sock->addr, &in_addr)) {
+    log_fatal("Failed to convert address (%s).", sock->addr);
+    perror("inet_aton");
+    close(sfd);
+    return -1;
   }
-
-  server_address.sin_family = AF_INET;
-  server_address.sin_addr.s_addr = htonl(INADDR_ANY);
-  server_address.sin_port = htons(server_port);
-  if (bind(server_sockfd, (struct sockaddr *)&server_address,
-           sizeof(server_address)) == -1) {
+  struct sockaddr_in sockaddr = {.sin_port = htons(sock->port),
+                                 .sin_addr = in_addr.s_addr,
+                                 .sin_family = sock->domain};
+  if (bind(sfd, (const struct sockaddr *)&sockaddr, sizeof(sockaddr))) {
+    log_fatal("Failed to bind");
     perror("bind");
-    return 1;
+    close(sfd);
+    return -1;
   }
+  log_trace("Binded scoket");
 
-  if (listen(server_sockfd, 5) == -1) {
+  if (listen(sfd, sock->listen)) {
+    log_fatal("Listen failed to set \"%d\"", sock->listen);
+    close(sfd);
     perror("listen");
-    return 1;
   }
-  return 0;
+  log_trace("Socket will listen for %d conenction", sock->listen);
+  open_sockets[open_sockets_len++] = (open_socket){.fd = sfd, .conf = sock};
+  return sfd;
 }
 
 void getAddressAndPort(struct sockaddr *addr, char *ipBuffer,
                        size_t ipBufferLength, int *port) {
-  if (addr->sa_family == AF_INET) { // Check if it's an IPv4 address
+  if (addr->sa_family == AF_INET) {
     struct sockaddr_in *ipv4 = (struct sockaddr_in *)addr;
-    // Convert the IP address from binary to a string
     inet_ntop(AF_INET, &(ipv4->sin_addr), ipBuffer, ipBufferLength);
-    // Extract the port
     *port = ntohs(ipv4->sin_port);
   } else {
     fprintf(stderr, "Unsupported address family\n");
     exit(EXIT_FAILURE);
+  }
+}
+const char *prototoa(const protocol proto) {
+  switch (proto) {
+  case HTTP:
+    return "http";
+    break;
+  case HTTPS:
+    return "https";
+    break;
+  default:
+    return "unsupported porotcol";
+    break;
   }
 }

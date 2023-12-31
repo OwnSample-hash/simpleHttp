@@ -8,6 +8,7 @@
 
 #include "log/log.h"
 #include "lua/lua_.h"
+#include "socket.h"
 
 void ctrl_c_h(int sigframe);
 
