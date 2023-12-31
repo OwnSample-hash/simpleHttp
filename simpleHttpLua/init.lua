@@ -29,6 +29,8 @@ function log(lvl, fmt, ...)
   log_log(lvl, caller.short_src, caller.currentline, fmt, ...)
 end
 
+SERVER_ROOT = "./server/"
+
 if pcall(function()
       require 'routes'
     end) then
