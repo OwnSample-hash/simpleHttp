@@ -1,7 +1,7 @@
 Add_Route('/hello', "GET", "<html><h1>Hello</h1></html>")
 
 Add_Route("/test", "GET", function()
-	local file = io.open('./server/test.html', "r")
+	local file = io.open(SERVER_ROOT .. '/test.html', "r")
 	if not file then
 		return "<html><h1>404</h1></html>"
 	end
@@ -9,3 +9,5 @@ Add_Route("/test", "GET", function()
 	file:close()
 	return lines
 end)
+
+log(LOG_INFO, "Added routes")
