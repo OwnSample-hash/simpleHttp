@@ -33,7 +33,6 @@ lookup_status virtual_path_resolv(const char *path, const int cfd) {
 
     snprintf(header_payload, 37 + payload_len + strlen(HEADER) + cntLen,
              "%s%s %d\r\n%s", HEADER, "Content-Length:", payload_len, cntTyp);
-    log_trace("cntp: %s", cntTyp);
     write(cfd, header_payload, strlen(header_payload));
     write(cfd, "\r\n", 2);
     write(cfd, payload, payload_len);

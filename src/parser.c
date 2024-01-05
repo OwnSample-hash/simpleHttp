@@ -9,14 +9,14 @@
 void erep(int client_fd) {
   static const char payload[] = "HTTP/1.1 404 Not Found\r\n"
                                 "Connection: close\r\n"
-                                "Content-Length: 90\r\n"
+                                "Content-Length: 65\r\n"
                                 "Content-Type: text/html\r\n"
                                 "\r\n"
                                 "<html>\r\n"
                                 "<head>\r\n"
                                 "</head>\r\n"
                                 "<body>\r\n"
-                                "  <h1>404</h1>\r\n"
+                                "<h1>404</h1>\r\n"
                                 "</body>\r\n"
                                 "</html>\r\n";
   write(client_fd, payload, sizeof(payload));
@@ -55,13 +55,14 @@ int parseReq(char *request, size_t srequest, int client_fd) {
            wordsGet->next->data);
   int ret = parseGet(payload, strlen(payload), client_fd);
   if (ret != OK_GET) {
-    log_trace("praseGet(...) != OK_GET is true");
+    log_trace("praseGet(...) != OK_GET is true, ret: %d", ret);
     log_info("Treating path (%s) as a virtual path", wordsGet->next->data);
     ret = virtual_path_resolv(wordsGet->next->data, client_fd);
   }
   freeList(lines);
   freeList(wordsGet);
   free(payload);
+  log_trace("Returing %d", ret);
   return ret;
 }
 

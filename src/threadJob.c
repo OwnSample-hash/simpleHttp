@@ -1,12 +1,16 @@
 #include "threadJob.h"
+#include "log/log.h"
 #include "socket.h"
 
 void threadJob(int client_sockfd) {
   char buf[KB_1 * 8];
   log_info("Serving client fd:%d", client_sockfd);
   int nbytes_read = read(client_sockfd, buf, BUFSIZ);
-  if (parseReq(buf, nbytes_read, client_sockfd) != 0)
+  int ret;
+  if ((ret = parseReq(buf, nbytes_read, client_sockfd)) != 0) {
+    log_warn("Failed to parse request replying with 404");
     erep(client_sockfd);
+  }
   close(client_sockfd);
   log_info("Connection closed on fd:%d exiting", client_sockfd);
   exit(0);
@@ -25,13 +29,9 @@ int serve(int sfd) {
     int port;
     getAddressAndPort((struct sockaddr *)&client_address, ipBuffer,
                       INET_ADDRSTRLEN, &port);
-    log_info("Client %s:%d A.K.A %d fd", ipBuffer, port, client_sockfd);
+    log_info("Client %s:%d on fd: %d", ipBuffer, port, client_sockfd);
     pid_t pid = fork();
     if (pid == 0) {
-      // if (dup2(STDOUT_FILENO, 1) == -1) {
-      //   perror("dup2");
-      //   return -1;
-      // }
       threadJob(client_sockfd);
     } else if (pid == -1) {
       perror("handler,fork");

@@ -5,6 +5,7 @@
 #include "quit_handler.h"
 #include "socket.h"
 #include "threadJob.h"
+#include <lua.h>
 #include <signal.h>
 #include <unistd.h>
 
@@ -29,7 +30,7 @@ int main(int argc, char **argv) {
                  .listen = 5,
                  .proto = HTTP};
 
-  log_info("simpleHTTP-%s HTTP/1.1", GIT_COMMIT);
+  log_info("simpleHTTP-%s HTTP/1.1, with %s", GIT_COMMIT, LUA_RELEASE);
   int sfd = createSocket(&ns);
   if (sfd == -1) {
     log_fatal("Check above for more info");
