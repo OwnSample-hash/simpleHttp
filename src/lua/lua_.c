@@ -1,7 +1,6 @@
 #include "lua_.h"
 #include <lua5.2/lauxlib.h>
 #include <lua5.2/lua.h>
-#include <stdarg.h>
 
 lua_State *L;
 void lua_init() {
@@ -9,11 +8,19 @@ void lua_init() {
   luaL_openlibs(L);
   lua_pushglobaltable(L);
   lua_setglobal(L, "Funcs");
-  lua_pushcfunction(L, lua_reg_route);
-  lua_setglobal(L, "reg_route");
-  lua_pushcfunction(L, lua_log_log);
-  lua_setglobal(L, "log_log");
-  if (luaL_dostring(L, "require \"simpleHttpLua\"") != LUA_OK) {
+
+  // lua_pushcfunction(L, lua_reg_route);
+  // lua_setglobal(L, "reg_route");
+  // lua_pushcfunction(L, lua_log_log);
+  // lua_setglobal(L, "log_log");
+#define REG(fn)                                                                \
+  lua_pushcfunction(L, lua_##fn);                                              \
+  lua_setglobal(L, #fn);                                                       \
+  log_trace("pushed lua_%s, and setted as global: %s", #fn, #fn);
+  LUA_FUNCS_
+#undef REG
+
+  if (luaL_dostring(L, "require \"simpleHttpdLua\"") != LUA_OK) {
     log_error("LUA ERROR");
     luaL_error(L, "Error %s\n", lua_tostring(L, -1));
   }
@@ -32,21 +39,5 @@ int lua_log_log(lua_State *L) {
   const char *fmt = luaL_checkstring(L, 4);
 
   log_log(level, file, line, fmt);
-  return 0;
-}
-
-// p1 path str -3
-// p2 meth str -2
-// p3 retn function|str -1
-int lua_reg_route(lua_State *L) {
-  const char *path = lua_tostring(L, -3);
-  const char *meth = lua_tostring(L, -2);
-  const char *payl;
-  if (lua_isfunction(L, -1)) {
-    payl = "func";
-  } else {
-    payl = lua_tostring(L, -1);
-  }
-  log_debug("path:%s\tmeth:%s\tpayl:%s", path, meth, payl);
   return 0;
 }

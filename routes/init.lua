@@ -10,4 +10,12 @@ Add_Route("/test", "GET", function()
 	return lines
 end)
 
+Add_Route("/lom", "GET", function()
+	return "<html><h1>" .. tostring(math.random()) .. "</h1></html>"
+end)
+
+Add_Route("/scan", "GET", function()
+
+end)
+
 log(LOG_INFO, "Added routes")
