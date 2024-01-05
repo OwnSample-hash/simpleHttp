@@ -1,8 +1,8 @@
 CC = clang
-CFLAGS = -ggdb -DGIT_COMMIT=\"$(shell git rev-parse --short HEAD)\" -DLOG_USE_COLOR=1 -std=c2x
+CFLAGS = -ggdb -DGIT_COMMIT=\"$(shell git rev-parse --short HEAD)\" -DLOG_USE_COLOR=1
 LDFLAGS = -lmagic -llua
 
-BIN = simpleHttp
+BIN = simpleHttpd
 
 _MAKE_DIR = make.dir
 SRC_DIR = src
