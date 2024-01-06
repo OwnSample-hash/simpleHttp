@@ -29,14 +29,14 @@ lookup_status virtual_path_resolv(const char *path, const int cfd) {
     int cntLen = strlen(cntTyp);
     // first param const int is 21 working should be 37
     char *header_payload =
-        calloc(37 + payload_len + strlen(HEADER) + cntLen, sizeof(char));
+        calloc(35 + payload_len + strlen(HEADER) + cntLen, sizeof(char));
 
-    snprintf(header_payload, 37 + payload_len + strlen(HEADER) + cntLen,
+    snprintf(header_payload, 35 + payload_len + strlen(HEADER) + cntLen,
              "%s%s %d\r\n%s", HEADER, "Content-Length:", payload_len, cntTyp);
     write(cfd, header_payload, strlen(header_payload));
     write(cfd, "\r\n", 2);
     write(cfd, payload, payload_len);
-    write(cfd, "\r\n", 2);
+    // write(cfd, "\r\n", 2);
     free(cntTyp);
     free(header_payload);
   } else {
