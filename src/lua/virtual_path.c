@@ -1,15 +1,15 @@
 #include "virtual_path.h"
 #include "../mime_guess.h"
 #include "../parser.h"
-#include <lua5.2/lauxlib.h>
-#include <lua5.2/lua.h>
+#include <lauxlib.h>
+#include <lua.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 
 lookup_status virtual_path_resolv(const char *path, const int cfd) {
   log_info("Looking up path: %s", path);
-  lua_getglobal(L, "Funcs");
+  lua_getglobal(L, "_Funcs");
   lua_getfield(L, -1, path);
   if (!lua_isnil(L, -1)) {
     const char *payload;
