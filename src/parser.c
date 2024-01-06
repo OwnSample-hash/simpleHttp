@@ -78,7 +78,6 @@ parseGet_ parseGet(char *payload, size_t spayload, int client_fd) {
   log_info("Opening file: '%s'", fn);
   FILE *fp = fopen(fn, "rb");
   if (fp == NULL) {
-    perror("fopen");
     return NOT_FOUND;
   }
 
