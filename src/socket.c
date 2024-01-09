@@ -1,6 +1,7 @@
 #include "socket.h"
 #include "log/log.h"
 #include <arpa/inet.h>
+#include <asm-generic/socket.h>
 #include <netinet/in.h>
 #include <sys/socket.h>
 #include <unistd.h>
@@ -22,10 +23,19 @@ int createSocket(const new_sock *sock) {
   }
   log_trace("Socket created fd:%d", sfd);
 
+  int enable = 1;
+  if (setsockopt(sfd, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(enable))) {
+    perror("setsockopt");
+    log_fatal("setsockopt faild god man");
+    return -1;
+  }
+  log_trace("Set sockopt SO_REUSEADDR for %d to %d", sfd, enable);
+
   struct in_addr in_addr = {0};
-  if (!inet_pton(sock->domain, sock->addr, &in_addr)) {
-    log_fatal("Failed to convert address (%s).", sock->addr);
-    perror("inet_aton");
+  int pton = -2;
+  if ((pton = inet_pton(sock->domain, sock->addr, &in_addr)) == -1) {
+    log_fatal("Failed to convert address (%s)., %d", sock->addr, pton);
+    perror("inet_pton");
     close(sfd);
     return -1;
   }
