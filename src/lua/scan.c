@@ -1,13 +1,11 @@
 #define _XOPEN_SOURCE 500
 #include "../itoa.h"
-#include "../quit_handler.h"
 #include "lua_.h"
 #include <dirent.h>
 #include <ftw.h>
 #include <lauxlib.h>
 #include <lua.h>
 #include <stdio.h>
-#include <string.h>
 
 typedef struct stat stat_t;
 typedef struct FTW FTW_t;
@@ -31,13 +29,11 @@ int lua_scan_(lua_State *L) {
   const char *path = lua_tostring(L, 1);
   counter = 0;
   lua_newtable(L);
-  luaL_checktype(L, -1, LUA_TTABLE);
   int n = nftw(path, _filter, 5, FTW_PHYS);
   if (n == -1) {
     log_error("dirent failed to scan dir");
     perror("dirent");
   } else
     log_trace("nftw found %d files, on path %s", counter, path);
-  luaL_checktype(L, -1, LUA_TTABLE);
   return 1;
 }

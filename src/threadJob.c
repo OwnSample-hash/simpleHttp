@@ -1,5 +1,6 @@
 #include "threadJob.h"
 #include "log/log.h"
+#include "lua/virtual_path.h"
 #include "socket.h"
 
 void threadJob(int client_sockfd) {
@@ -7,9 +8,16 @@ void threadJob(int client_sockfd) {
   log_info("Serving client fd:%d", client_sockfd);
   int nbytes_read = read(client_sockfd, buf, BUFSIZ);
   int ret;
-  if ((ret = parseReq(buf, nbytes_read, client_sockfd)) != 0) {
-    log_warn("Failed to parse request replying with 404");
+  switch (parseReq(buf, nbytes_read, client_sockfd)) {
+  case NIL:
+    log_debug("Nil resp");
     erep(client_sockfd);
+    break;
+  case HANDLED:
+    log_debug("Client handeld other ways");
+    break;
+  default:
+    break;
   }
   close(client_sockfd);
   log_info("Connection closed on fd:%d exiting", client_sockfd);

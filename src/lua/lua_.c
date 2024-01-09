@@ -1,18 +1,16 @@
 #include "lua_.h"
-#include <lua5.2/lauxlib.h>
-#include <lua5.2/lua.h>
+#include <lauxlib.h>
+#include <lua.h>
+#include <lualib.h>
+#include <unistd.h>
 
 lua_State *L;
 void lua_init() {
   L = luaL_newstate();
   luaL_openlibs(L);
-  lua_pushglobaltable(L);
-  lua_setglobal(L, "Funcs");
+  // lua_pushglobaltable(L);
+  // lua_setglobal(L, "_Funcs");
 
-  // lua_pushcfunction(L, lua_reg_route);
-  // lua_setglobal(L, "reg_route");
-  // lua_pushcfunction(L, lua_log_log);
-  // lua_setglobal(L, "log_log");
 #define REG(fn)                                                                \
   lua_pushcfunction(L, lua_##fn);                                              \
   lua_setglobal(L, #fn);                                                       \
@@ -25,6 +23,23 @@ void lua_init() {
     luaL_error(L, "Error %s\n", lua_tostring(L, -1));
   }
   log_info("Lua ran successfully.");
+}
+
+int lua_write_(lua_State *L) {
+  luaL_checknumber(L, 1);
+  luaL_checkstring(L, 2);
+  luaL_checknumber(L, 3);
+  int cfd = lua_tonumber(L, 1);
+  const char *data = lua_tostring(L, 2);
+  int len = lua_tonumber(L, 3);
+  log_trace("Writing data to client: %d with len %d", cfd, len);
+  int bytes = write(cfd, data, len);
+  if (bytes < 0) {
+    perror("lua_write_");
+    log_fatal("Failed to write data to client: %d", cfd);
+  }
+  lua_pushnumber(L, bytes);
+  return 1;
 }
 
 int lua_log_log(lua_State *L) {
