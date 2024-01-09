@@ -4,8 +4,11 @@
 char *ContentType(m_type type, const char *payload) {
   const char *mime;
   magic_t magic;
-
-  magic = magic_open(MAGIC_MIME_TYPE);
+  magic = magic_open(MAGIC_MIME | MAGIC_SYMLINK | MAGIC_CHECK);
+  if (magic == NULL) {
+    log_error("No magic");
+    perror("magic");
+  }
   magic_load(magic, NULL);
   switch (type) {
   case M_FILE:
@@ -18,6 +21,7 @@ char *ContentType(m_type type, const char *payload) {
     break;
   default:
     log_error("Default case no vaild magic type supplied");
+    return NULL;
     break;
   }
   int len = 17 + strlen(mime);
@@ -26,6 +30,7 @@ char *ContentType(m_type type, const char *payload) {
     perror("calloc");
   }
   snprintf(ret, len, "Content-Type: %s\r\n", mime);
+  log_trace("Mime type: %s", mime);
   magic_close(magic);
   return ret;
 }
