@@ -1,21 +1,44 @@
-if scan_ == nil or log_log == nil then
+_Funcs = _Funcs or {}
+if scan_ == nil or log_log == nil or _Funcs == nil or write_ == nil then
   print('LUA FAILED NO GLOBAL FUNCS ARE PUSHED')
   print("scan:" .. tostring(scan))
   print("log_log:" .. tostring(log_log))
+  print("_Funcs:" .. tostring(_Funcs))
+  print("log_log:" .. tostring(write_))
+  return nil
 end
 
+
+---Writes data to a file descriptor and returns the number of bytes written
+---@param fd number
+---@param data string
+---@param data_len number
+---@return number
+function Write(fd, data, data_len)
+  return write_(fd, data, data_len)
+end
 
 ---Route registration wrapper
 ---@param path string
 ---@param meth string
----@param fn function|string
+---@param cntp string Either auto or a short hand code
+---@param handler function|string
 ---@return nil
-function Add_Route(path, meth, fn)
+function Add_Route(path, meth, cntp, handler)
   if path == "/" then
     log(LOG_WARN, "Adding route to path '/' will not be used TODO:fix")
     return
   end
-  Funcs[path] = fn
+  if type(handler) == "string" then
+    _Funcs[path] = handler
+  else
+    _Funcs[path] = {
+      ["fn"] = handler,
+      ["meth"] = meth or "GET",
+      ["cntp"] = cntp or "auto",
+    }
+  end
+  log(LOG_INFO, "Added path (%s) with meth (%s) with ~fn~ to the registry", path, meth)
 end
 
 LOG_TRACE = 0
@@ -33,19 +56,35 @@ LOG_FATAL = 5
 function log(lvl, fmt, ...)
   local caller = debug.getinfo(2)
   if caller == nil then
-    log_log(LOG_ERROR, "No caller")
     print("NO CALLER")
   end
   log_log(lvl, caller.short_src, caller.currentline, string.format(fmt, ...))
 end
 
-SERVER_ROOT = "./server/"
+log(LOG_INFO, "Running speical returns")
+dofile("simpleHttpdLua/special_ret.lua")
 
-if not pcall(function()
-      require 'routes'
-    end) then
-  log(LOG_ERROR, "faild to do routes")
+MAX_TBL_DEPTH = 5
+function dump_table(base_tbl, depth)
+  depth = depth or 0
+  if depth == MAX_TBL_DEPTH then return "MAX_TBL_DEPTH REACEHED" end
+  log(LOG_WARN, "dumping table depth: %d", depth)
+  local tmplt1 = "{%s}"
+  local tmplt2 = "\"%s\":\"%s\""
+  local tmplt3 = "\"%s\": [%s]"
+  local ret_str = ""
+  for k, v in pairs(base_tbl) do
+    if type(v) == "table" then
+      ret_str = ret_str .. tmplt3:format(k, dump_table(v, depth + 1)) .. ","
+    else
+      ret_str = ret_str .. tmplt2:format(k, tostring(v)) .. ","
+    end
+  end
+  ret_str = ret_str:sub(1, -2)
+  return tmplt1:format(ret_str)
 end
+
+SERVER_ROOT = "./server/"
 
 
 ---Scans a dir
@@ -62,10 +101,37 @@ local routes_scan = Scan(routes_dir)
 if routes_scan then
   if type(routes_scan) == 'table' then
     for k, v in pairs(routes_scan) do
-      log(LOG_INFO, k .. ":" .. tostring(v))
-      if k == (routes_dir .. "init.lua") then
+      log(LOG_TRACE, k .. ":" .. tostring(v))
+      if v == (routes_dir .. "init.lua") then
         require(routes_dir)
         log(LOG_TRACE, "%sinit.lua added", routes_dir)
+      else
+        log(LOG_TRACE, "%s is treated as dofile add", v)
+        local vpath = v:gsub(routes_dir, "/")
+        vpath = vpath:gsub("%.lua", "")
+        local tmp = {}
+        for split in vpath:gmatch("%a+") do
+          table.insert(tmp, split)
+        end
+        local meth = tmp[#tmp]
+        local path = "/"
+        log(LOG_TRACE, "meth: %s", meth)
+        for _, v2 in pairs(tmp) do
+          if v2 == meth then
+            path = path:sub(1, -2)
+            break
+          end
+          path = path .. v2 .. "/"
+        end
+        log(LOG_TRACE, "vpath:%s, path:%s, meth:%s", vpath, path, meth)
+        local handler = dofile(v)
+        log(LOG_TRACE, "handler %s", handler)
+        if handle ~= nil then
+          Add_Route(path, meth:upper(), "auto", handler)
+        else
+          log(LOG_WARN, "Not adding nil path: %s, vpath: %s, meth: %s", path, vpath, meth)
+          Add_Route(path, meth:upper(), "auto", handler)
+        end
       end
     end
   else
