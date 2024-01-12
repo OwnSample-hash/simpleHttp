@@ -1,3 +1,3 @@
-# "Simple Http with lua support."
+# "Simple" Http with lua support.
 
 Funny
