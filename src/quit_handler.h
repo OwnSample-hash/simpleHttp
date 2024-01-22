@@ -8,8 +8,9 @@
 
 #include "log/log.h"
 #include "lua/lua_.h"
+#include "lua/setup.h"
 #include "socket.h"
 
 void ctrl_c_h(int sigframe);
-
+extern const driver *drv;
 #endif // !__QUIT_HANDLER_HTTP__

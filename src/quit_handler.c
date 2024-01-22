@@ -13,5 +13,10 @@ void ctrl_c_h(int sigframe) {
     log_debug("Closed socket %s:%d, fd: %d", open_sockets[i].conf->addr,
               open_sockets[i].conf->port, open_sockets[i].fd);
   }
+  free((void *)drv->server_root);
+  free((void *)drv->routes_root);
+  free((void *)drv->socket->addr);
+  free(drv->socket);
+  free((void *)drv);
   exit(0);
 }

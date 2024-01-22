@@ -1,10 +1,12 @@
 #include "parser.h"
 #include "bytes.h"
+#include "dbg.h"
 #include "itoa.h"
 #include "linkList.h"
 #include "log/log.h"
 #include "lua/virtual_path.h"
 #include "mime_guess.h"
+#include <assert.h>
 
 void erep(int client_fd) {
   static const char payload[] = "HTTP/1.1 404 Not Found\r\n"
@@ -34,7 +36,7 @@ splits_t splitOn_c(char *str, const char *delimiter) {
   return head;
 }
 
-int parseReq(char *request, size_t srequest, int client_fd) {
+int parseReq(char *request, size_t srequest, int client_fd, const char *root) {
   splits_t lines = splitOn_c(request, (const char *)"\n");
   char *cpyData = lines->data;
   splits_t wordsGet = splitOn_c(cpyData, (const char *)" ");
@@ -53,7 +55,7 @@ int parseReq(char *request, size_t srequest, int client_fd) {
   payload = calloc(payload_len + 2, sizeof(char));
   snprintf(payload, payload_len + 2, "%s %s", wordsGet->data,
            wordsGet->next->data);
-  int ret = parseGet(payload, strlen(payload), client_fd);
+  int ret = parseGet(payload, strlen(payload), client_fd, root);
   if (ret != OK_GET) {
     log_trace("praseGet(...) != OK_GET is true, ret: %d", ret);
     log_info("Treating path (%s) as a virtual path", wordsGet->next->data);
@@ -66,16 +68,18 @@ int parseReq(char *request, size_t srequest, int client_fd) {
   return ret;
 }
 
-parseGet_ parseGet(char *payload, size_t spayload, int client_fd) {
+parseGet_ parseGet(char *payload, size_t spayload, int client_fd,
+                   const char *root) {
+  dbg_assert(root[0] == 'E', "Why no %s", root);
   char *fn = calloc(spayload + 2, sizeof(char));
   if (fn == NULL) {
-    perror("calloc");
     log_fatal("CALLOC FAILED");
+    perror("calloc");
     return CALLOC;
   }
-  strncpy(fn, "./server", 8);
+  strncpy(fn, root, strlen(root));
   strncatskip(fn, payload, spayload, 4);
-  log_info("Opening file: '%s'", fn);
+  log_info("Opening file: '%s' on root: '%s'", fn, root);
   FILE *fp = fopen(fn, "rb");
   if (fp == NULL) {
     return NOT_FOUND;

@@ -8,7 +8,7 @@
 
 extern lua_State *L;
 
-void lua_init();
+void lua_init(const char *root);
 #define LUA_FUNCS_                                                             \
   REG(log_log)                                                                 \
   REG(scan_)                                                                   \

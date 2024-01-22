@@ -3,8 +3,19 @@
 #include <arpa/inet.h>
 #include <asm-generic/socket.h>
 #include <netinet/in.h>
+#include <string.h>
 #include <sys/socket.h>
 #include <unistd.h>
+
+unsigned long domtosize(int flag) {
+  switch (flag) {
+  case AF_INET:
+    return sizeof(struct sockaddr_in);
+  case AF_INET6:
+    return sizeof(struct sockaddr_in6);
+  }
+  return 0;
+}
 
 int createSocket(const new_sock *sock) {
   log_trace("open_sockets_len is %d", open_sockets_len);
@@ -30,25 +41,58 @@ int createSocket(const new_sock *sock) {
     return -1;
   }
   log_trace("Set sockopt SO_REUSEADDR for %d to %d", sfd, enable);
-
-  struct in_addr in_addr = {0};
+  void *sockaddr;
   int pton = -2;
-  if ((pton = inet_pton(sock->domain, sock->addr, &in_addr)) == -1) {
-    log_fatal("Failed to convert address (%s)., %d", sock->addr, pton);
-    perror("inet_pton");
+
+  switch (sock->domain) {
+  case AF_INET: {
+    struct in_addr in_addr = {0};
+    if ((pton = inet_pton(sock->domain, sock->addr, &in_addr)) == -1) {
+      log_fatal("Failed to convert address (%s)., %d", sock->addr, pton);
+      perror("inet_pton");
+      close(sfd);
+      return -1;
+    }
+    sockaddr = calloc(1, sizeof(struct sockaddr_in));
+    struct sockaddr_in *addr_in = (struct sockaddr_in *)sockaddr;
+
+    addr_in->sin_port = htons(sock->port);
+    addr_in->sin_addr = in_addr;
+    addr_in->sin_family = sock->domain;
+  } break;
+  case AF_INET6: {
+    struct in6_addr in_addr = {0};
+    if ((pton = inet_pton(sock->domain, sock->addr, &in_addr)) == -1) {
+      log_fatal("Failed to convert address (%s)., %d", sock->addr, pton);
+      perror("inet_pton");
+      close(sfd);
+      return -1;
+    }
+    sockaddr = calloc(1, sizeof(struct sockaddr_in6));
+    struct sockaddr_in6 *addr_in = (struct sockaddr_in6 *)sockaddr;
+
+    addr_in->sin6_family = sock->domain;
+    addr_in->sin6_port = htons(sock->port);
+    addr_in->sin6_flowinfo = 0;
+    addr_in->sin6_addr = in_addr;
+    addr_in->sin6_scope_id = 0;
+  } break;
+  default:
+    log_error("No domain");
     close(sfd);
     return -1;
   }
-  struct sockaddr_in sockaddr = {.sin_port = htons(sock->port),
-                                 .sin_addr = in_addr.s_addr,
-                                 .sin_family = sock->domain};
-  if (bind(sfd, (const struct sockaddr *)&sockaddr, sizeof(sockaddr))) {
+
+  if (bind(sfd, sockaddr, domtosize(sock->domain))) {
     log_fatal("Failed to bind");
     perror("bind");
+    asm("int 0x3");
     close(sfd);
     return -1;
   }
   log_trace("Binded scoket");
+
+  free(sockaddr);
 
   if (listen(sfd, sock->listen)) {
     log_fatal("Listen failed to set \"%d\"", sock->listen);
@@ -60,17 +104,36 @@ int createSocket(const new_sock *sock) {
   return sfd;
 }
 
-void getAddressAndPort(struct sockaddr *addr, char *ipBuffer,
-                       size_t ipBufferLength, int *port) {
+void getAddressAndPort(const struct sockaddr *addr, char *ipBuffer,
+                       const size_t ipBufferLength, int *port) {
+  log_trace("family: %i", addr->sa_family);
   if (addr->sa_family == AF_INET) {
     struct sockaddr_in *ipv4 = (struct sockaddr_in *)addr;
     inet_ntop(AF_INET, &(ipv4->sin_addr), ipBuffer, ipBufferLength);
     *port = ntohs(ipv4->sin_port);
+  } else if (addr->sa_family == (unsigned int)AF_INET6) {
+    struct sockaddr_in6 *ipv6 = (struct sockaddr_in6 *)addr;
+    inet_ntop(AF_INET6, &(ipv6->sin6_addr), ipBuffer, ipBufferLength);
+    *port = ntohs(ipv6->sin6_port);
   } else {
-    fprintf(stderr, "Unsupported address family\n");
-    exit(EXIT_FAILURE);
+    log_error("Unsupported address family");
   }
 }
+
+#define A2PROTO                                                                \
+  X("http", HTTP)                                                              \
+  X("https", HTTPS)
+
+int *atoproto(const char *asciiz) {
+  int *ret = calloc(1, sizeof(int));
+#define X(str, val)                                                            \
+  if (strncmp(asciiz, str, strlen(asciiz)) == 0)                               \
+    *ret = val;
+  A2PROTO
+#undef X
+  return ret;
+}
+
 const char *prototoa(const protocol proto) {
   switch (proto) {
   case HTTP:
@@ -80,6 +143,7 @@ const char *prototoa(const protocol proto) {
     return "https";
     break;
   default:
+    log_trace("%d", proto);
     return "unsupported porotcol";
     break;
   }

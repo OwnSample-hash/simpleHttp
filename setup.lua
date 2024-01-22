@@ -4,8 +4,10 @@ DOMAIN = "AF_INET6"
 LISTEN = 5
 PROTO = "HTTP"
 
-SERVER_ROOT = "./server2"
+SERVER_ROOT = "server2"
 ROUTES_ROOT = "./routes"
+
+-- set_log_level(LOG_TRACE)
 
 create_socket(IP, PORT, DOMAIN, LISTEN, PROTO)
 

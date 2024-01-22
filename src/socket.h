@@ -18,9 +18,11 @@ typedef struct {
   const char *full_key;
 } ssl_conf;
 
+#define MAX_ADDR_LEN 12
+
 typedef struct {
   const char *addr;
-  const short int port;
+  const int port;
   const int domain;
   const int listen;
   const protocol proto;
@@ -38,8 +40,10 @@ extern open_socket open_sockets[MAX_OPEN_SOCKETS];
 extern int open_sockets_len;
 
 int createSocket(const new_sock *sock);
-void getAddressAndPort(struct sockaddr *addr, char *ipBuffer,
-                       size_t ipBufferLength, int *port);
+void getAddressAndPort(const struct sockaddr *addr, char *ipBuffer,
+                       const size_t ipBufferLength, int *port);
 
 const char *prototoa(const protocol proto);
+int *atoproto(const char *asciiz);
+unsigned long domtosize(int flag);
 #endif /* __SOCKET_SHTTP_ */

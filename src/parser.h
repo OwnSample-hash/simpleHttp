@@ -26,8 +26,9 @@ typedef enum {
   NO_STAT,
 } parseGet_;
 
-int parseReq(char *request, size_t srequest, int client_fd);
-parseGet_ parseGet(char *payload, size_t spayload, int client_fd);
+int parseReq(char *request, size_t srequest, int client_fd, const char *root);
+parseGet_ parseGet(char *payload, size_t spayload, int client_fd,
+                   const char *root);
 splits_t splitOn_c(char *str, const char *delimiter);
 void erep(int client_fd);
 void strncatskip(char *dst, const char *src, size_t count, size_t offset);
