@@ -1,5 +1,5 @@
 CC = clang
-CFLAGS = -ggdb -DGIT_COMMIT=\"$(shell git rev-parse --short HEAD)\" -DLOG_USE_COLOR=1
+CFLAGS = -ggdb -DGIT_COMMIT=\"$(shell git rev-parse --short HEAD)\" -DLOG_USE_COLOR=1 -masm=intel
 LDFLAGS = -lmagic -llua
 
 BIN = simpleHttpd
@@ -28,10 +28,8 @@ prolog:
 $(BUILD_DIR):
 	mkdir -p $(patsubst $(SRC_DIR)%, $(BUILD_DIR)%, $(shell find $(SRC_DIR) -type d))
 
-
 $(BUILD_DIR)/%.o: $(SRC_DIR)/%.c | $(BUILD_DIR)
 	$(CC) $(CFLAGS) -c $< -o $@
-
 
 $(BIN): $(OBJS)
 	$(CC) $(OBJS) $(LDFLAGS) -o $(BIN)
