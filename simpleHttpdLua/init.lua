@@ -84,9 +84,6 @@ function dump_table(base_tbl, depth)
   return tmplt1:format(ret_str)
 end
 
-SERVER_ROOT = "./server/"
-
-
 ---Scans a dir
 ---@param path string
 ---@return table(string)
