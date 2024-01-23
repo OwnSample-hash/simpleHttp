@@ -1,6 +1,6 @@
 # Bugs
 
-## [src/socket.c](OwnSample-hash/simpleHttp/blob/main/src/socket.c#L107-L121)
+## [src/socket.c](src/socket.c#L107-L121)
 - getAddressAndPort doesnt work since ipv6 support
 - [ ] Is fixed?
 
