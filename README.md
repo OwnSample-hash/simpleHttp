@@ -2,4 +2,4 @@
 
 Funny
 
-[Bugs](bug.md)
+[Bugs](bugs.md)
