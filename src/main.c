@@ -1,5 +1,6 @@
 // simpleHttp HTTP/1.1
 
+#include "dbg.h"
 #include "log/log.h"
 #include "lua/lua_.h"
 #include "lua/setup.h"
@@ -46,6 +47,6 @@ int main(int argc, char **argv) {
   log_info("Url: %s://%s%s%s:%d/", prototoa(drv->socket->proto),
            drv->socket->domain == AF_INET6 ? "[" : "", drv->socket->addr,
            drv->socket->domain == AF_INET6 ? "]" : "", drv->socket->port);
-  serve(sfd, drv);
+  // dbg_assert(1 == 1, "BREAK");
   return 0;
 }

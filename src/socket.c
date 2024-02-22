@@ -86,7 +86,7 @@ int createSocket(const new_sock *sock) {
   if (bind(sfd, sockaddr, domtosize(sock->domain))) {
     log_fatal("Failed to bind");
     perror("bind");
-    asm("int 0x3");
+    // asm("int 0x3");
     close(sfd);
     return -1;
   }
@@ -111,7 +111,7 @@ void getAddressAndPort(const struct sockaddr *addr, char *ipBuffer,
     struct sockaddr_in *ipv4 = (struct sockaddr_in *)addr;
     inet_ntop(AF_INET, &(ipv4->sin_addr), ipBuffer, ipBufferLength);
     *port = ntohs(ipv4->sin_port);
-  } else if (addr->sa_family == (unsigned int)AF_INET6) {
+  } else if (addr->sa_family == AF_INET6) {
     struct sockaddr_in6 *ipv6 = (struct sockaddr_in6 *)addr;
     inet_ntop(AF_INET6, &(ipv6->sin6_addr), ipBuffer, ipBufferLength);
     *port = ntohs(ipv6->sin6_port);
