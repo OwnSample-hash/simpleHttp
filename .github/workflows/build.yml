@@ -24,7 +24,7 @@ jobs:
     - name: Compile lua
       run: make -C lua
     - name: ls
-      run: ls
+      run: ls && cat lua/Makefile
     - name: Install lua
       run: make -C lua install
     - name: make
