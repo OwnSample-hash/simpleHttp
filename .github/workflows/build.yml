@@ -14,7 +14,7 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: Install clang, libmagic
-      run : apt update -y && apt install -y clang libmagic-dev build-essential
+      run : apt update -y && apt install -y clang libmagic-dev build-essential golang
     - name: Install lua
       run: wget https://www.lua.org/ftp/lua-5.4.6.tar.gz && tar xf lua-5.4.6.tar.gz && ln -s `pwd`/lua-5.4.6/ `pwd`/lua && make -C lua all install 
     - name: make
