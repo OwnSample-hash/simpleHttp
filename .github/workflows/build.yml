@@ -27,5 +27,7 @@ jobs:
       run: ls && cat lua/Makefile
     - name: Install lua
       run: make -C lua install
+    - name: Clang Version
+      run: clang --version
     - name: make
       run: make
