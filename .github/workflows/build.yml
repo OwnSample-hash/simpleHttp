@@ -20,7 +20,8 @@ jobs:
     - name: link lua src to lua 
       run: ln -s `pwd`/lua-5.4.6/src/ `pwd`/lua
     - name: Compile lua
-      run: cd lua && make && make install
+      run: cd lua && make
+      run: cd lua && make install
     - name: ls
       run: ls
     - name: make
