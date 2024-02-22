@@ -4,3 +4,4 @@ server/*.png
 server/*.jpg
 make.dir
 simpleHttpd
+.cache
