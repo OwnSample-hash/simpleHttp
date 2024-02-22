@@ -21,7 +21,7 @@ jobs:
       run: make
     - name: Release dev build
       uses: https://gitea.com/actions/release-action@main
-        with:
-          files: |-
-            simpleHttpd            
-          api_key: '${{secrets.RELEASE_TOKEN}}'
+      with:
+        files: |-
+          simpleHttpd            
+        api_key: '${{secrets.RELEASE_TOKEN}}'
