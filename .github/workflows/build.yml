@@ -15,8 +15,9 @@ jobs:
     - uses: actions/checkout@v3
     - name: ls
       run: ls
-    - name: get-lua
+    - name: get lua
       run: wget https://www.lua.org/ftp/lua-5.4.6.tar.gz
+    - name: untar lua
       run: tar xvf lua-5.4.6.tar.gz
     - name: make
       run: make
