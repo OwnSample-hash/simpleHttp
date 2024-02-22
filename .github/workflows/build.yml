@@ -19,11 +19,9 @@ jobs:
       run: wget https://www.lua.org/ftp/lua-5.4.6.tar.gz && tar xf lua-5.4.6.tar.gz && ln -s `pwd`/lua-5.4.6/ `pwd`/lua && make -C lua all install 
     - name: make
       run: make
-    - uses: "marvinpinto/action-automatic-releases@latest"
-      with:
-        repo_token: "${{ secrets.GITEA_TOKEN }}"
-        automatic_release_tag: "latest"
-        prerelease: true
-        title: "SimpleHttpd auto shit!"
-        files: |
-          simpleHttpd
+    - name: Release dev build
+      uses: https://gitea.com/actions/release-action@main
+        with:
+          files: |-
+            simpleHttpd            
+          api_key: '${{secrets.RELEASE_TOKEN}}'
