@@ -21,6 +21,7 @@ jobs:
       run: ln -s `pwd`/lua-5.4.6/src/ `pwd`/lua
     - name: Compile lua
       run: cd lua && make
+    - name: Install lua
       run: cd lua && make install
     - name: ls
       run: ls
