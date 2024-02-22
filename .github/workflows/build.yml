@@ -20,4 +20,4 @@ jobs:
     - name: untar lua
       run: tar xvf lua-5.4.6.tar.gz
     - name: make
-      run: make
+      run: CPATH=lua-5.4.6/src/ make
