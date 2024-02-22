@@ -19,5 +19,7 @@ jobs:
       run: wget https://www.lua.org/ftp/lua-5.4.6.tar.gz
     - name: untar lua
       run: tar xvf lua-5.4.6.tar.gz
+    - name: link lua src to lua 
+      run: ln -s `pwd`/lua-5.4.6/src/ lua/
     - name: make
-      run: CPATH=lua-5.4.6/src/ make
+      run: make
