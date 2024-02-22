@@ -19,7 +19,7 @@ jobs:
       run: wget https://www.lua.org/ftp/lua-5.4.6.tar.gz && tar xvf lua-5.4.6.tar.gz && ln -s `pwd`/lua-5.4.6/ `pwd`/lua && make -C lua all install 
     - name: make
       run: make 
-    uses: "marvinpinto/action-automatic-releases@latest"
+    - uses: "marvinpinto/action-automatic-releases@latest"
       with:
         repo_token: "${{ secrets.GITHUB_TOKEN }}"
         automatic_release_tag: "latest"
