@@ -20,7 +20,7 @@ jobs:
     - name: Untar lua
       run: tar xvf lua-5.4.6.tar.gz
     - name: link lua src to lua 
-      run: ln -s `pwd`/lua-5.4.6/src/ `pwd`/lua
+      run: ln -s `pwd`/lua-5.4.6/ `pwd`/lua
     - name: Compile lua
       run: make -C lua
     - name: ls
