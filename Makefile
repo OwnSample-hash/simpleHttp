@@ -1,4 +1,4 @@
-CC = clang
+CC = gcc
 CFLAGS = -ggdb -DGIT_COMMIT=\"$(shell git rev-parse --short HEAD)\" -DLOG_USE_COLOR=1 -masm=intel -pg -Ilua
 LDFLAGS = -lmagic -llua -pg
 
