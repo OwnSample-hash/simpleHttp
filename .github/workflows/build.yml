@@ -14,7 +14,7 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: Install clang, libmagic
-      run : apt update -y && apt install -y libmagic-dev # clang
+      run : apt update -y && apt install -y clang libmagic-dev
     - name: Get lua
       run: wget https://www.lua.org/ftp/lua-5.4.6.tar.gz
     - name: Untar lua
@@ -28,6 +28,6 @@ jobs:
     - name: Install lua
       run: make -C lua install
     - name: Clang Version
-      run: gcc --version
+      run: clang --version
     - name: make
       run: make
