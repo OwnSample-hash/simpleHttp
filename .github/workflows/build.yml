@@ -13,6 +13,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
+    - name: Install clang
+      run : apt update -y && apt install clang -y
     - name: get lua
       run: wget https://www.lua.org/ftp/lua-5.4.6.tar.gz
     - name: untar lua
@@ -20,9 +22,9 @@ jobs:
     - name: link lua src to lua 
       run: ln -s `pwd`/lua-5.4.6/src/ `pwd`/lua
     - name: Compile lua
-      run: cd lua && make
+      run: make -C lua
     - name: Install lua
-      run: cd lua && make install
+      run: make -C lua install
     - name: ls
       run: ls
     - name: make
