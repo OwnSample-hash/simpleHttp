@@ -1,6 +1,5 @@
 // simpleHttp HTTP/1.1
 
-#include "dbg.h"
 #include "log/log.h"
 #include "lua/lua_.h"
 #include "lua/setup.h"
@@ -9,16 +8,18 @@
 #include "threadJob.h"
 #include <lua.h>
 #include <signal.h>
+#include <stdlib.h>
 #include <unistd.h>
 
 #ifndef GIT_COMMIT
 #define GIT_COMMIT "none-given"
 #endif
 
-const driver *drv;
+driver *drv;
 
 int main(int argc, char **argv) {
   signal(SIGINT, ctrl_c_h);
+  drv = calloc(1, sizeof(driver));
 
 #ifndef NO_LOG
   log_set_level(LOG_TRACE);
@@ -28,7 +29,7 @@ int main(int argc, char **argv) {
   log_set_quiet(1);
 #endif
 
-  drv = init("setup.lua");
+  init("setup.lua", drv);
   if (!drv) {
     log_error("Idk");
     return 1;
@@ -47,6 +48,6 @@ int main(int argc, char **argv) {
   log_info("Url: %s://%s%s%s:%d/", prototoa(drv->socket->proto),
            drv->socket->domain == AF_INET6 ? "[" : "", drv->socket->addr,
            drv->socket->domain == AF_INET6 ? "]" : "", drv->socket->port);
-  // dbg_assert(1 == 1, "BREAK");
+  serve(sfd, drv);
   return 0;
 }

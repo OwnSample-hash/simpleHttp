@@ -12,7 +12,7 @@ typedef struct _drv {
   const char *routes_root;
 } driver;
 
-const driver *init(const char *conf_file);
+void init(const char *conf_file, driver *drv);
 
 #define LUA_FUNCS_INIT                                                         \
   REG(create_socket)                                                           \

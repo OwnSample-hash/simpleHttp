@@ -63,7 +63,9 @@ int lua_set_server_root(lua_State *L) {
   lua_getglobal(L, "__DRV");
   luaL_checktype(L, -1, LUA_TLIGHTUSERDATA);
   driver *drv = lua_touserdata(L, -1);
-  drv->server_root = lua_tostring(L, 1);
+  const char *tmp = lua_tostring(L, 1);
+  drv->server_root = calloc(strlen(tmp), sizeof(char));
+  strncpy(drv->server_root, tmp, strlen(tmp));
   return 0;
 }
 
@@ -72,14 +74,16 @@ int lua_set_routes_root(lua_State *L) {
   lua_getglobal(L, "__DRV");
   luaL_checktype(L, -1, LUA_TLIGHTUSERDATA);
   driver *drv = lua_touserdata(L, -1);
-  drv->routes_root = lua_tostring(L, 1);
+  const char *tmp = lua_tostring(L, 1);
+  drv->routes_root = calloc(strlen(tmp), sizeof(char));
+  strncpy(drv->routes_root, tmp, strlen(tmp));
   return 0;
 }
 
-const driver *init(const char *conf_file) {
+void init(const char *conf_file, driver *drv) {
   lua_State *L_conf = luaL_newstate();
   luaL_openlibs(L_conf);
-  driver *drv = calloc(1, sizeof(driver));
+  // driver *drv = calloc(1, sizeof(driver));
   lua_pushlightuserdata(L_conf, drv);
   lua_setglobal(L_conf, "__DRV");
 
@@ -96,5 +100,5 @@ const driver *init(const char *conf_file) {
   }
 
   lua_close(L_conf);
-  return drv;
+  // return drv;
 }

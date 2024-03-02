@@ -86,7 +86,6 @@ int createSocket(const new_sock *sock) {
   if (bind(sfd, sockaddr, domtosize(sock->domain))) {
     log_fatal("Failed to bind");
     perror("bind");
-    // asm("int 0x3");
     close(sfd);
     return -1;
   }

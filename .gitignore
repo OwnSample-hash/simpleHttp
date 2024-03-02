@@ -5,3 +5,5 @@ server/*.jpg
 make.dir
 simpleHttpd
 .cache
+compile_commands.json
+gmon.out

@@ -1,4 +1,5 @@
 #include "threadJob.h"
+#include "dbg.h"
 #include "log/log.h"
 #include "lua/virtual_path.h"
 #include "socket.h"
@@ -43,8 +44,7 @@ int serve(int sfd, const driver *drv) {
     log_trace("client_len=%d, sizeof ipBuffer=%d", client_len,
               sizeof(ipBuffer));
     int port;
-    getAddressAndPort((struct sockaddr *)&client_address, ipBuffer,
-                      sizeof(ipBuffer), &port);
+    getAddressAndPort(client_address, ipBuffer, sizeof(ipBuffer), &port);
     free(client_address);
     log_info("Client %s:%d via fd: %d", ipBuffer, port, client_sockfd);
     pid_t pid = fork();

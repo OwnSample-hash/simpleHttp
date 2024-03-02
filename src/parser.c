@@ -70,7 +70,6 @@ int parseReq(char *request, size_t srequest, int client_fd, const char *root) {
 
 parseGet_ parseGet(char *payload, size_t spayload, int client_fd,
                    const char *root) {
-  dbg_assert(root[0] == 'E', "Why no %s", root);
   char *fn = calloc(spayload + 2, sizeof(char));
   if (fn == NULL) {
     log_fatal("CALLOC FAILED");
