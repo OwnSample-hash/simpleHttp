@@ -8,6 +8,7 @@
 - - fixed by copy out the read strings to a drv struct
 
 ## [src/socket.c](src/socket.c#L107-L121)
-- getAddressAndPort doesnt work since ipv6 support
-- the sockaddr addr struct is corrupt 
+- ~~getAddressAndPort doesnt work since ipv6 support~~
+- ~~the sockaddr addr struct is corrupt~~
+- Now resolvs ipv6 but not ipv4 and also the address family for ipv4 is 0 hmmm
 - [ ] Is fixed?

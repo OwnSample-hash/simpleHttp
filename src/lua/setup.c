@@ -54,7 +54,7 @@ int lua_create_socket(lua_State *L) {
   memcpy((int *)&(ns->proto), proto_, sizeof(int));
   free(proto_);
 
-  drv->socket = ns;
+  drv->socket[drv->socket_count++] = ns;
   return 0;
 }
 
@@ -65,7 +65,7 @@ int lua_set_server_root(lua_State *L) {
   driver *drv = lua_touserdata(L, -1);
   const char *tmp = lua_tostring(L, 1);
   drv->server_root = calloc(strlen(tmp), sizeof(char));
-  strncpy(drv->server_root, tmp, strlen(tmp));
+  strncpy((char *)drv->server_root, tmp, strlen(tmp));
   return 0;
 }
 
@@ -76,7 +76,7 @@ int lua_set_routes_root(lua_State *L) {
   driver *drv = lua_touserdata(L, -1);
   const char *tmp = lua_tostring(L, 1);
   drv->routes_root = calloc(strlen(tmp), sizeof(char));
-  strncpy(drv->routes_root, tmp, strlen(tmp));
+  strncpy((char *)drv->routes_root, tmp, strlen(tmp));
   return 0;
 }
 

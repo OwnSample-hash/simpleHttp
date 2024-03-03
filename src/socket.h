@@ -1,12 +1,8 @@
 #ifndef __SOCKET_SHTTP_
 #define __SOCKET_SHTTP_
-#include "log/log.h"
 #include <arpa/inet.h>
 #include <netdb.h>
 #include <netinet/in.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include <strings.h>
 #include <sys/socket.h>
 #include <sys/types.h>
@@ -29,7 +25,7 @@ typedef struct {
   const ssl_conf *ssl_conf;
 } new_sock;
 
-#define MAX_OPEN_SOCKETS 2
+#define MAX_OPEN_SOCKETS 4
 
 typedef struct {
   int fd;

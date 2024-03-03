@@ -6,7 +6,8 @@
 #include "lua_.h"
 
 typedef struct _drv {
-  new_sock *socket;
+  new_sock **socket;
+  int socket_count;
   LOG_LEVEL log_level;
   const char *server_root;
   const char *routes_root;

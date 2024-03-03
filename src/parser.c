@@ -1,12 +1,10 @@
 #include "parser.h"
 #include "bytes.h"
-#include "dbg.h"
 #include "itoa.h"
 #include "linkList.h"
 #include "log/log.h"
 #include "lua/virtual_path.h"
 #include "mime_guess.h"
-#include <assert.h>
 
 void erep(int client_fd) {
   static const char payload[] = "HTTP/1.1 404 Not Found\r\n"

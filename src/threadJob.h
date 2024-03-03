@@ -8,7 +8,7 @@
 #include "socket.h"
 #include <sys/wait.h>
 
-int serve(int sfd, const driver *drv);
+int serve(int *fds, const driver *drv);
 void threadJob(int client_sockfd, const char *server);
 
 #endif

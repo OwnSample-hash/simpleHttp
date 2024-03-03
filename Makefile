@@ -12,9 +12,14 @@ CSRCS = $(shell find ${SRC_DIR} -type f -name "*.c")
 
 OBJS = $(patsubst $(SRC_DIR)/%.c, $(BUILD_DIR)/%.o, $(CSRCS))
 
-all: ${BIN}
+all: backup ${BIN}
 	@echo Done bulding
 
+backup:
+	mv ${BIN} ${BIN}.prev
+
+restore:
+	mv ${BIN}.prev ${BIN}
 prolog:
 	@echo CC=${CC}
 	@echo CFLAGS=${CFLAGS}

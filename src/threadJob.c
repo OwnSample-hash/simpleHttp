@@ -1,9 +1,9 @@
 #include "threadJob.h"
-#include "dbg.h"
 #include "log/log.h"
 #include "lua/virtual_path.h"
 #include "socket.h"
 #include <netinet/in.h>
+#include <poll.h>
 
 void threadJob(int client_sockfd, const char *server) {
   char buf[KB_1 * 8];
@@ -26,35 +26,50 @@ void threadJob(int client_sockfd, const char *server) {
   exit(0);
 }
 
-int serve(int sfd, const driver *drv) {
+int serve(int *fds, const driver *drv) {
   while (1) {
-    void *client_address = calloc(1, domtosize(drv->socket->domain));
-    if (!client_address) {
-      log_fatal("Failed to calloc mem to c_addr");
-      perror("calloc");
+    struct pollfd fds[open_sockets_len];
+    for (int i = 0; i < open_sockets_len; i++) {
+      fds[i].fd = open_sockets[i].fd;
+      fds[i].events = POLL_PRI | POLLRDBAND;
     }
-    socklen_t client_len = 0;
-    int client_sockfd =
-        accept(sfd, (struct sockaddr *)&client_address, &client_len);
-    if (client_sockfd == -1) {
-      perror("accept");
-      return -1;
+    int ret = poll(fds, open_sockets_len, -1);
+    if (ret > 0) {
+      for (int i = 0; i < open_sockets_len; i++) {
+        if (fds[i].revents & POLL_HUP) {
+          log_error("Socket %d has hungup", fds[i].fd);
+          exit(1);
+        }
+        if (fds[i].revents & POLL_PRI || fds[i].revents & POLLRDBAND) {
+          int port = 0;
+          char ipBuffer[INET6_ADDRSTRLEN] = {0};
+          int domain;
+          for (int j = 0; j < open_sockets_len; j++) {
+            domain = open_sockets[j].fd == fds[i].fd
+                         ? open_sockets[j].conf->domain
+                         : -1;
+          }
+          socklen_t client_len = domtosize(domain);
+          void *client_address = calloc(1, client_len);
+          if (!client_address) {
+            perror("calloc,accept_logic");
+            log_fatal("Mem erroy");
+            exit(1);
+          }
+          int client_sockfd = accept(fds[i].fd, client_address, &client_len);
+          getAddressAndPort(client_address, ipBuffer, sizeof(ipBuffer), &port);
+          log_info("Client %s:%d via fd: %d", ipBuffer, port, client_sockfd);
+          pid_t pid = fork();
+          if (pid == 0) {
+            threadJob(client_sockfd, drv->server_root);
+          } else if (pid == -1) {
+            perror("handler,fork");
+          } else
+            log_debug("serve_pid:%d", pid);
+          wait(NULL);
+        }
+      }
     }
-    char ipBuffer[INET6_ADDRSTRLEN];
-    log_trace("client_len=%d, sizeof ipBuffer=%d", client_len,
-              sizeof(ipBuffer));
-    int port;
-    getAddressAndPort(client_address, ipBuffer, sizeof(ipBuffer), &port);
-    free(client_address);
-    log_info("Client %s:%d via fd: %d", ipBuffer, port, client_sockfd);
-    pid_t pid = fork();
-    if (pid == 0) {
-      threadJob(client_sockfd, drv->server_root);
-    } else if (pid == -1) {
-      perror("handler,fork");
-    } else
-      log_debug("serve_pid:%d", pid);
-    wait(NULL);
   }
   return 0;
 }
