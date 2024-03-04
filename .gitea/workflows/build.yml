@@ -5,8 +5,13 @@ on:
     branches: [ "main" ]
     tags:
       - '*'
+    paths:
+      - "**.c"
+      - "**.h"
   pull_request:
     branches: [ "main" ]
+      - "**.c"
+      - "**.h"
 
 jobs:
   build:
