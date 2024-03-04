@@ -3,14 +3,11 @@ name: Build simpleHttpd
 on:
   push:
     branches: [ "main" ]
+    tags:
+      - '*'
     paths:
       - "**.c"
       - "**.h"
-  pull_request:
-    branches: [ "main" ]
-      - "**.c"
-      - "**.h"
-
 jobs:
   build:
 
@@ -36,4 +33,9 @@ jobs:
           simpleHttpd
           setup.lua
           simpleHttpdLua
-
+    - name: Release dev build
+      uses: https://gitea.com/actions/release-action@main
+      with:
+        files: |-
+          simpleHttpd            
+        api_key: '${{secrets.RELEASE_TOKEN}}'
