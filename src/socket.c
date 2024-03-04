@@ -36,7 +36,8 @@ int createSocket(const new_sock *sock) {
   log_trace("Socket created fd:%d", sfd);
 
   int enable = 1;
-  if (setsockopt(sfd, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(enable))) {
+  if (setsockopt(sfd, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &enable,
+                 sizeof(enable))) {
     perror("setsockopt");
     log_fatal("setsockopt faild god man");
     return -1;

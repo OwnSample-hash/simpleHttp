@@ -43,12 +43,15 @@ int serve(int *fds, const driver *drv) {
         if (fds[i].revents & POLL_PRI || fds[i].revents & POLLRDBAND) {
           int port = 0;
           char ipBuffer[INET6_ADDRSTRLEN] = {0};
-          int domain;
+          int domain = 0;
           for (int j = 0; j < open_sockets_len; j++) {
             domain = open_sockets[j].fd == fds[i].fd
                          ? open_sockets[j].conf->domain
                          : -1;
+            if (domain > 0)
+              break;
           }
+          log_trace("!!!sock->domian=%d", domain);
           socklen_t client_len = domtosize(domain);
           void *client_address = calloc(1, client_len);
           if (!client_address) {
