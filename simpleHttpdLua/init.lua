@@ -71,7 +71,7 @@ function dump_table(base_tbl, depth)
   log(LOG_WARN, "dumping table depth: %d", depth)
   local tmplt1 = "{%s}"
   local tmplt2 = "\"%s\":\"%s\""
-  local tmplt3 = "\"%s\": [%s]"
+  local tmplt3 = "\"%s\": %s"
   local ret_str = ""
   for k, v in pairs(base_tbl) do
     if type(v) == "table" then
@@ -123,11 +123,12 @@ if routes_scan then
         log(LOG_TRACE, "vpath:%s, path:%s, meth:%s", vpath, path, meth)
         local handler = dofile(v)
         log(LOG_TRACE, "handler %s", handler)
-        if handle ~= nil then
-          Add_Route(path, meth:upper(), "auto", handler)
-        else
+        if handler == nil then
           log(LOG_WARN, "Not adding nil path: %s, vpath: %s, meth: %s", path, vpath, meth)
+          log(LOG_TRACE, "handler: %s", handler)
+        else
           Add_Route(path, meth:upper(), "auto", handler)
+          log(LOG_INFO, "Added path: %s, meth: %s", path, meth)
         end
       end
     end
