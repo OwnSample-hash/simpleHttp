@@ -18,6 +18,7 @@
 driver *drv;
 
 int main(int argc, char **argv) {
+  log_info("simpleHTTP-%s HTTP/1.1, with %s", GIT_COMMIT, LUA_RELEASE);
   signal(SIGINT, ctrl_c_h);
   drv = calloc(1, sizeof(driver));
   drv->socket = calloc(MAX_OPEN_SOCKETS, sizeof(new_sock));
@@ -26,7 +27,6 @@ int main(int argc, char **argv) {
   log_set_level(LOG_TRACE);
 #else
 #warning "No LOG"
-  log_set_level(LOG_FATAL);
   log_set_quiet(1);
 #endif
 
@@ -36,15 +36,9 @@ int main(int argc, char **argv) {
     return 1;
   }
 
-  log_info("simpleHTTP-%s HTTP/1.1, with %s", GIT_COMMIT, LUA_RELEASE);
   int fds[MAX_OPEN_SOCKETS];
   for (int i = 0; i < drv->socket_count; i++)
     fds[i] = createSocket(drv->socket[i]);
-  // if (sfd == -1) {
-  //   log_fatal("Check above for more info");
-  //   log_fatal("Socket creation failed quitting...");
-  //   return -1;
-  // }
   log_info("Routes root:\"%s\"", drv->routes_root);
   log_info("Server root:\"%s\"", drv->server_root);
   lua_init(drv->routes_root);
@@ -53,6 +47,6 @@ int main(int argc, char **argv) {
         "Url: %s://%s%s%s:%d/", prototoa(drv->socket[i]->proto),
         drv->socket[i]->domain == AF_INET6 ? "[" : "", drv->socket[i]->addr,
         drv->socket[i]->domain == AF_INET6 ? "]" : "", drv->socket[i]->port);
-  serve(fds, drv);
+  serve(drv);
   return 0;
 }

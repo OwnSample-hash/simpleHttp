@@ -63,6 +63,7 @@ void displayList(splits_t head) {
   printf("\n");
 }
 
+
 void insertNode(splits_t *head, char *data) {
   splits_t newNode = (splits_t)malloc(sizeof(splits_t));
   newNode->data = data;

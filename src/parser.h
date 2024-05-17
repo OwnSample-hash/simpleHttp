@@ -24,11 +24,11 @@ typedef enum {
   OK_GET = 0,
   NOT_FOUND,
   NO_STAT,
-} parseGet_;
+} parseGet_t;
 
 int parseReq(char *request, size_t srequest, int client_fd, const char *root);
-parseGet_ parseGet(char *payload, size_t spayload, int client_fd,
-                   const char *root);
+parseGet_t parseGet(char *payload, size_t spayload, int client_fd,
+                    const char *root);
 splits_t splitOn_c(char *str, const char *delimiter);
 void erep(int client_fd);
 void strncatskip(char *dst, const char *src, size_t count, size_t offset);

@@ -66,8 +66,8 @@ int parseReq(char *request, size_t srequest, int client_fd, const char *root) {
   return ret;
 }
 
-parseGet_ parseGet(char *payload, size_t spayload, int client_fd,
-                   const char *root) {
+parseGet_t parseGet(char *payload, size_t spayload, int client_fd,
+                    const char *root) {
   char *fn = calloc(spayload + 2, sizeof(char));
   if (fn == NULL) {
     log_fatal("CALLOC FAILED");

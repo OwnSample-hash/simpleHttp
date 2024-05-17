@@ -1,5 +1,6 @@
 #include "quit_handler.h"
 #include "log/log.h"
+#include "lua/lua_.h"
 #include "socket.h"
 #include <stdlib.h>
 

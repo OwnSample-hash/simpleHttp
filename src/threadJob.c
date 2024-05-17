@@ -26,13 +26,13 @@ void threadJob(int client_sockfd, const char *server) {
   exit(0);
 }
 
-int serve(int *fds, const driver *drv) {
+int serve(const driver *drv) {
+  struct pollfd fds[open_sockets_len];
+  for (int i = 0; i < open_sockets_len; i++) {
+    fds[i].fd = open_sockets[i].fd;
+    fds[i].events = POLL_PRI | POLLRDBAND;
+  }
   while (1) {
-    struct pollfd fds[open_sockets_len];
-    for (int i = 0; i < open_sockets_len; i++) {
-      fds[i].fd = open_sockets[i].fd;
-      fds[i].events = POLL_PRI | POLLRDBAND;
-    }
     int ret = poll(fds, open_sockets_len, -1);
     if (ret > 0) {
       for (int i = 0; i < open_sockets_len; i++) {
@@ -72,6 +72,9 @@ int serve(int *fds, const driver *drv) {
           wait(NULL);
         }
       }
+    } else {
+      log_fatal("Poll failed");
+      perror("poll");
     }
   }
   return 0;

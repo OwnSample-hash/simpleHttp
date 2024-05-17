@@ -7,7 +7,6 @@
 #include <string.h>
 
 int lua_create_socket(lua_State *L) {
-  // create_socket(IP, PORT, DOMAIN, LISTEN, PROTO)
   luaL_checkstring(L, 1);  // IP
   luaL_checkinteger(L, 2); // PORT
   luaL_checkstring(L, 3);  // DOMAIN
@@ -80,13 +79,24 @@ int lua_set_routes_root(lua_State *L) {
   return 0;
 }
 
+int lua_set_log_level(lua_State *L) {
+  luaL_checkinteger(L, -1);
+  log_set_level(lua_tonumber(L, -1));
+  return 0;
+}
+
 void init(const char *conf_file, driver *drv) {
   lua_State *L_conf = luaL_newstate();
   luaL_openlibs(L_conf);
-  // driver *drv = calloc(1, sizeof(driver));
   lua_pushlightuserdata(L_conf, drv);
   lua_setglobal(L_conf, "__DRV");
 
+#define ADD(value)                                                             \
+  lua_pushnumber(L_conf, value);                                               \
+  lua_setglobal(L_conf, #value);
+  LVLS
+#undef ADD
+  // clang-format off
 #define REG(fn)                                                                \
   lua_pushcfunction(L_conf, lua_##fn);                                         \
   lua_setglobal(L_conf, #fn);                                                  \
@@ -98,7 +108,5 @@ void init(const char *conf_file, driver *drv) {
     log_fatal("Failed to load config file");
     luaL_error(L_conf, "Error %s\n", lua_tostring(L_conf, -1));
   }
-
   lua_close(L_conf);
-  // return drv;
 }

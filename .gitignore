@@ -8,3 +8,4 @@ simpleHttpd
 compile_commands.json
 gmon.out
 simpleHttpd.prev
+simpleHttp.trace
