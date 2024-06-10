@@ -65,7 +65,7 @@ log(LOG_INFO, "Running speical returns")
 dofile("simpleHttpdLua/special_ret.lua")
 
 MAX_TBL_DEPTH = 5
-function dump_table(base_tbl, depth)
+function Dump_table(base_tbl, depth)
   depth = depth or 0
   if depth == MAX_TBL_DEPTH then return "MAX_TBL_DEPTH REACEHED" end
   log(LOG_WARN, "dumping table depth: %d", depth)
@@ -75,7 +75,7 @@ function dump_table(base_tbl, depth)
   local ret_str = ""
   for k, v in pairs(base_tbl) do
     if type(v) == "table" then
-      ret_str = ret_str .. tmplt3:format(k, dump_table(v, depth + 1)) .. ","
+      ret_str = ret_str .. tmplt3:format(k, Dump_table(v, depth + 1)) .. ","
     else
       ret_str = ret_str .. tmplt2:format(k, tostring(v)) .. ","
     end

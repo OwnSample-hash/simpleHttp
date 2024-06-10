@@ -16,7 +16,7 @@ end)
 
 
 Add_Route("/_routes", "GET", "json", function()
-  return dump_table(_Funcs, 0)
+  return Dump_table(_Funcs, 0)
 end)
 
 log(LOG_INFO, "Added routes")
