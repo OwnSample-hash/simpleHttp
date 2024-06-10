@@ -9,8 +9,8 @@ typedef struct _drv {
   new_sock **socket;
   int socket_count;
   LOG_LEVEL log_level;
-  const char *server_root;
-  const char *routes_root;
+  char *server_root;
+  char *routes_root;
 } driver;
 
 void init(const char *conf_file, driver *drv);

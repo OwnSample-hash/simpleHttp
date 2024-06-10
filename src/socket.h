@@ -17,7 +17,7 @@ typedef struct {
 #define MAX_ADDR_LEN 12
 
 typedef struct {
-  const char *addr;
+  char *addr;
   const int port;
   const int domain;
   const int listen;
@@ -29,13 +29,13 @@ typedef struct {
 
 typedef struct {
   int fd;
-  const new_sock *conf;
+  new_sock *conf;
 } open_socket;
 
 extern open_socket open_sockets[MAX_OPEN_SOCKETS];
 extern int open_sockets_len;
 
-int createSocket(const new_sock *sock);
+int createSocket(new_sock *sock);
 void getAddressAndPort(const struct sockaddr *addr, char *ipBuffer,
                        const size_t ipBufferLength, int *port);
 

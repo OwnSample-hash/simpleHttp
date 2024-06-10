@@ -17,7 +17,7 @@ unsigned long domtosize(int flag) {
   return 0;
 }
 
-int createSocket(const new_sock *sock) {
+int createSocket(new_sock *sock) {
   log_trace("open_sockets_len is %d", open_sockets_len);
   if (open_sockets_len > MAX_OPEN_SOCKETS - 1) {
     log_fatal("Cannot create more socket limit reached");
