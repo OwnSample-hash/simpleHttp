@@ -1,5 +1,5 @@
-#ifndef __BYTES__V_PATH_
-#define __BYTES__V_PATH_
+#ifndef __HTTP__V_PATH__
+#define __HTTP__V_PATH__
 
 #include "lua_.h"
 

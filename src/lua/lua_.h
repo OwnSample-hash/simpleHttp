@@ -1,12 +1,12 @@
-#ifndef __BYTES__LUA_
-#define __BYTES__LUA_
+#ifndef __HTTP__LUA_
+#define __HTTP__LUA_
 
 #include "../log/log.h"
 #include <lauxlib.h>
 #include <lua.h>
 #include <lualib.h>
 
-extern lua_State *L;
+extern lua_State *gL;
 
 void lua_init(const char *root);
 #define LUA_FUNCS_                                                             \
