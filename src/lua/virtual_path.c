@@ -10,30 +10,30 @@
 
 lookup_status virtual_path_resolv(const char *path, const int cfd) {
   log_info("Looking up path: %s", path);
-  lua_pushnumber(L, cfd);
-  lua_setglobal(L, "__CFD");
-  lua_getglobal(L, "_Funcs");
-  lua_getfield(L, -1, path);
-  if (!lua_isnil(L, -1)) {
+  lua_pushnumber(gL, cfd);
+  lua_setglobal(gL, "__CFD");
+  lua_getglobal(gL, "_Funcs");
+  lua_getfield(gL, -1, path);
+  if (!lua_isnil(gL, -1)) {
     const char *payload;
     char *cntTyp;
     int payload_len;
-    if (lua_isstring(L, -1)) {
+    if (lua_isstring(gL, -1)) {
       log_trace("L, -1 is a string, returning");
-      payload = lua_tostring(L, -1);
+      payload = lua_tostring(gL, -1);
       payload_len = strlen(payload);
       cntTyp = NULL;
-    } else if (lua_istable(L, -1)) {
+    } else if (lua_istable(gL, -1)) {
       log_trace("L, -1 is a table, parsing");
-      lua_getfield(L, -1, "fn");
-      luaL_checktype(L, -1, LUA_TFUNCTION);
-      lua_call(L, 0, 1);
-      payload = lua_tostring(L, -1);
+      lua_getfield(gL, -1, "fn");
+      luaL_checktype(gL, -1, LUA_TFUNCTION);
+      lua_call(gL, 0, 1);
+      payload = lua_tostring(gL, -1);
       payload_len = strlen(payload);
       log_trace("From tbl[fn] call got string, with len of %d", payload_len);
-      lua_getfield(L, -2, "cntp");
+      lua_getfield(gL, -2, "cntp");
       log_trace("Checking if -1 is string ");
-      luaL_checktype(L, -1, LUA_TSTRING);
+      luaL_checktype(gL, -1, LUA_TSTRING);
       cntTyp = NULL;
       if (cntTyp == NULL) {
         log_trace("Failing back to auto MIME detection");
@@ -41,8 +41,8 @@ lookup_status virtual_path_resolv(const char *path, const int cfd) {
 
     } else {
       log_trace("L, -1 is a func, calling");
-      lua_call(L, 0, 1);
-      payload = lua_tostring(L, -1);
+      lua_call(gL, 0, 1);
+      payload = lua_tostring(gL, -1);
       payload_len = strlen(payload);
       log_trace("From function call got string, with len of %d", payload_len);
     }

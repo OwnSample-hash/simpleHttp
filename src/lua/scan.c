@@ -13,13 +13,13 @@ static int counter = 0;
 int _filter(const char *path, const stat_t *sb, int tflag, FTW_t *tfwbuf) {
   if (tflag == FTW_F) {
     log_trace("Path: %s", path);
-    lua_pushstring(L, path);
-    luaL_checktype(L, -1, LUA_TSTRING);
-    luaL_checktype(L, -2, LUA_TTABLE);
-    lua_setfield(L, -2, TO_BASE(counter++, 10));
+    lua_pushstring(gL, path);
+    luaL_checktype(gL, -1, LUA_TSTRING);
+    luaL_checktype(gL, -2, LUA_TTABLE);
+    lua_setfield(gL, -2, TO_BASE(counter++, 10));
     return 0;
   } else {
-    log_trace("Ignoring \"%s\"", path);
+    log_trace("Ignoring \"%s\" on level %d", path, tfwbuf->level);
     return 0;
   }
 }
@@ -31,8 +31,8 @@ int lua_scan_(lua_State *L) {
   lua_newtable(L);
   int n = nftw(path, _filter, 5, FTW_PHYS);
   if (n == -1) {
-    log_error("dirent failed to scan dir");
-    perror("dirent");
+    log_error("nftw failed to scan dir");
+    perror("nftw");
   } else
     log_trace("nftw found %d files, on path %s", counter, path);
   return 1;

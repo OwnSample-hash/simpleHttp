@@ -4,12 +4,12 @@
 #include <lualib.h>
 #include <unistd.h>
 
-lua_State *L;
+lua_State *gL;
 void lua_init(const char *root) {
-  L = luaL_newstate();
-  luaL_openlibs(L);
-  lua_pushstring(L, root);
-  lua_setglobal(L, "SERVER_ROOT");
+  gL = luaL_newstate();
+  luaL_openlibs(gL);
+  lua_pushstring(gL, root);
+  lua_setglobal(gL, "SERVER_ROOT");
 
 #define REG(fn)                                                                \
   lua_pushcfunction(L, lua_##fn);                                              \
@@ -18,9 +18,9 @@ void lua_init(const char *root) {
   LUA_FUNCS_
 #undef REG
 
-  if (luaL_dostring(L, "require \"simpleHttpdLua\"") != LUA_OK) {
+  if (luaL_dostring(gL, "require \"simpleHttpdLua\"") != LUA_OK) {
     log_error("LUA ERROR");
-    luaL_error(L, "Error %s\n", lua_tostring(L, -1));
+    luaL_error(gL, "Error %s\n", lua_tostring(gL, -1));
   }
   log_info("Lua ran successfully.");
 }
