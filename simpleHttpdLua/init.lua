@@ -8,6 +8,19 @@ if scan_ == nil or log_log == nil or _Funcs == nil or write_ == nil then
   return nil
 end
 
+function Die(reason)
+  local caller = debug.getinfo(2)
+  if not caller then
+    print("NO CALLER")
+  end
+  if reason then
+    reason = "With the following reason: " .. reason
+  else
+    reason = ""
+  end
+  log_log(LOG_FATAL, caller.short_src, caller.currentline, "Server died! " .. reason)
+  os.exit(1)
+end
 
 ---Writes data to a file descriptor and returns the number of bytes written
 ---@param fd number
@@ -55,14 +68,16 @@ LOG_FATAL = 5
 ---@return nil
 function log(lvl, fmt, ...)
   local caller = debug.getinfo(2)
-  if caller == nil then
+  if not caller then
     print("NO CALLER")
   end
   log_log(lvl, caller.short_src, caller.currentline, string.format(fmt, ...))
 end
 
-log(LOG_INFO, "Running speical returns")
+log(LOG_INFO, "Running additonal lua files")
 dofile("simpleHttpdLua/special_ret.lua")
+dofile("simpleHttpdLua/template.lua")
+dofile("simpleHttpdLua/autoindex.lua")
 
 MAX_TBL_DEPTH = 5
 function Dump_table(base_tbl, depth)
@@ -125,7 +140,7 @@ if routes_scan then
         log(LOG_TRACE, "handler %s", handler)
         if handler == nil then
           log(LOG_WARN, "Not adding nil path: %s, vpath: %s, meth: %s", path, vpath, meth)
-          log(LOG_TRACE, "handler: %s", handler)
+          log(LOG_ERROR, "handler: %s", handler)
         else
           Add_Route(path, meth:upper(), "auto", handler)
           log(LOG_INFO, "Added path: %s, meth: %s", path, meth)
@@ -138,3 +153,5 @@ if routes_scan then
 else
   log(LOG_WARN, "routes_scan is empty")
 end
+
+CreateAutoIndex("autoindex", "/autoindex")
