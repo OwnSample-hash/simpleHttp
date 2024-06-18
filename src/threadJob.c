@@ -6,6 +6,7 @@
 #include <poll.h>
 
 void threadJob(int client_sockfd, const char *server) {
+  signal(SIGINT, NULL);
   char buf[KB_1 * 8];
   log_info("Serving client fd:%d", client_sockfd);
   int nbytes_read = read(client_sockfd, buf, BUFSIZ);

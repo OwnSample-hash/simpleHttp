@@ -12,8 +12,8 @@ void lua_init(const char *root) {
   lua_setglobal(gL, "SERVER_ROOT");
 
 #define REG(fn)                                                                \
-  lua_pushcfunction(L, lua_##fn);                                              \
-  lua_setglobal(L, #fn);                                                       \
+  lua_pushcfunction(gL, lua_##fn);                                             \
+  lua_setglobal(gL, #fn);                                                      \
   log_trace("pushed lua_%s, and setted as global: %s", #fn, #fn);
   LUA_FUNCS_
 #undef REG

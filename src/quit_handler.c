@@ -10,19 +10,20 @@ int open_sockets_len = 0;
 
 void ctrl_c_h(int sigframe) {
   log_info("Quitting and freeing things... %d", getpid());
-  lua_getglobal(gL, "TMPD");
 
   lua_close(gL);
   for (int i = 0; i < open_sockets_len; i++) {
     close(open_sockets[i].fd);
     log_info("Closed socket %s:%d, fd: %d", open_sockets[i].conf->addr,
              open_sockets[i].conf->port, open_sockets[i].fd);
+    free(open_sockets[i].conf->addr);
     free(open_sockets[i].conf);
   }
-  for (int i = 0; i < MAX_OPEN_SOCKETS; i++) {
-    free(drv->socket[i]->addr);
-    free(drv->socket[i]);
-  }
+  // for (int i = 0; i < MAX_OPEN_SOCKETS; i++) {
+  //   free(drv->socket[i]->addr);
+  //   free(drv->socket[i]);
+  // }
+  free(drv->socket);
   free(drv->routes_root);
   free(drv->server_root);
   free(drv);

@@ -38,7 +38,6 @@ lookup_status virtual_path_resolv(const char *path, const int cfd) {
       if (cntTyp == NULL) {
         log_trace("Failing back to auto MIME detection");
       }
-
     } else {
       log_trace("L, -1 is a func, calling");
       lua_call(gL, 0, 1);

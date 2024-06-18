@@ -14,7 +14,7 @@ void lua_init(const char *root);
   REG(scan_)                                                                   \
   REG(write_)
 
-#define REG(fn) int lua_##fn(lua_State *L);
+#define REG(fn) int lua_##fn(lua_State *gL);
 LUA_FUNCS_
 #undef REG
 
