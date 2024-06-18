@@ -63,6 +63,7 @@ int serve(const driver *drv) {
           int client_sockfd = accept(fds[i].fd, client_address, &client_len);
           getAddressAndPort(client_address, ipBuffer, sizeof(ipBuffer), &port);
           log_info("Client %s:%d via fd: %d", ipBuffer, port, client_sockfd);
+          free(client_address);
           pid_t pid = fork();
           if (pid == 0) {
             threadJob(client_sockfd, drv->server_root);
