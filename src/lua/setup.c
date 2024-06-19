@@ -5,6 +5,7 @@
 #include <lualib.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
 int lua_create_socket(lua_State *L) {
   luaL_checkstring(L, 1);  // IP
@@ -85,6 +86,28 @@ int lua_set_log_level(lua_State *L) {
   return 0;
 }
 
+int lua_set_keep_alive(lua_State *L) {
+  luaL_checktype(L, 1, LUA_TTABLE);
+  lua_getglobal(L, "__DRV");
+  luaL_checktype(L, -1, LUA_TLIGHTUSERDATA);
+  driver *drv = lua_touserdata(L, -1);
+  lua_pushstring(L, "keep_alive");
+  lua_gettable(L, 1);
+  drv->keep_alive.keep_alive = lua_toboolean(L, -1);
+  lua_pop(L, 1);
+  lua_pushstring(L, "timeout");
+  lua_gettable(L, 1);
+  drv->keep_alive.timeout = lua_tonumber(L, -1);
+  lua_pop(L, 1);
+  lua_pushstring(L, "max");
+  lua_gettable(L, 1);
+  drv->keep_alive.max = lua_tonumber(L, -1);
+  lua_pop(L, 1);
+  log_trace("Keep-Alive: %d, To: %d, Max: %d", drv->keep_alive.keep_alive,
+            drv->keep_alive.timeout, drv->keep_alive.max);
+  return 0;
+}
+
 void init(const char *conf_file, driver *drv) {
   lua_State *L_conf = luaL_newstate();
   luaL_openlibs(L_conf);
@@ -100,7 +123,7 @@ void init(const char *conf_file, driver *drv) {
 #define REG(fn)                                                                \
   lua_pushcfunction(L_conf, lua_##fn);                                         \
   lua_setglobal(L_conf, #fn);                                                  \
-  log_trace("pushed lua_%s, and setted as global: %s", #fn, #fn);
+  log_trace("[CONFIG] pushed lua_%s, and setted as global: %s", #fn, #fn);
   LUA_FUNCS_INIT
 #undef REG
 

@@ -1,14 +1,12 @@
 #ifndef __THREADJOB_HTTP__
 #define __THREADJOB_HTTP__
 
-#include "bytes.h"
-#include "log/log.h"
 #include "lua/setup.h"
-#include "parser.h"
-#include "socket.h"
+#include <stdbool.h>
 #include <sys/wait.h>
 
 int serve(const driver *drv);
-void threadJob(int client_sockfd, const char *server);
+void threadJob(int client_sockfd, const char *server,
+               const keep_alive_t *keep_alive);
 
 #endif

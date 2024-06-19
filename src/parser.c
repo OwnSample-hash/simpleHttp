@@ -3,8 +3,11 @@
 #include "itoa.h"
 #include "linkList.h"
 #include "log/log.h"
+#include "lua/setup.h"
 #include "lua/virtual_path.h"
 #include "mime_guess.h"
+#include <stdio.h>
+#include <string.h>
 
 void erep(int client_fd) {
   static const char payload[] = "HTTP/1.1 404 Not Found\r\n"
@@ -93,10 +96,10 @@ parseGet_t parseGet(char *payload, size_t spayload, int client_fd,
   int len_strelen = strlen(str_size);
   // first param const int is 21 working should be 37
   char *header_payload =
-      calloc(37 + len_strelen + strlen(HEADER) + cntLen, sizeof(char));
+      calloc(37 + len_strelen + strlen(HEADER_CLOSE) + cntLen, sizeof(char));
 
-  snprintf(header_payload, 37 + len_strelen + strlen(HEADER) + cntLen,
-           "%s%s %jd\r\n%s", HEADER, "Content-Length:", src_stat.st_size,
+  snprintf(header_payload, 37 + len_strelen + strlen(HEADER_CLOSE) + cntLen,
+           "%s%s %jd\r\n%s", HEADER_CLOSE, "Content-Length:", src_stat.st_size,
            cntTyp);
 
   write(client_fd, header_payload, strlen(header_payload));
@@ -134,4 +137,28 @@ void strncatskip(char *dst, const char *src, size_t count, size_t offset) {
     dst[j] = src[i];
   }
   dst[j + 1] = '\0';
+}
+
+int genHeader(char *dst, const keep_alive_t *keep_alive) {
+  if (keep_alive->keep_alive) {
+    int len = strlen(HEADER_CLOSE) + strlen(TO_BASE(keep_alive->timeout, 10)) +
+              strlen(TO_BASE(keep_alive->max, 10));
+    dst = calloc(len, sizeof(char));
+    if (!dst) {
+      log_fatal("Failed to calloc mem for header");
+      perror("calloc");
+      return -1;
+    }
+    return snprintf(dst, len, HEADER_KEEP, keep_alive->timeout,
+                    keep_alive->max);
+  } else {
+    dst = calloc(strlen(HEADER_CLOSE), sizeof(char));
+    if (!dst) {
+      log_fatal("Failed to calloc mem for header");
+      perror("calloc");
+      return -1;
+    }
+    strncpy(dst, HEADER_CLOSE, strlen(HEADER_CLOSE));
+    return strlen(HEADER_CLOSE);
+  }
 }
