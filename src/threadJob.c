@@ -1,14 +1,28 @@
 #include "threadJob.h"
+#include "bytes.h"
 #include "log/log.h"
+#include "lua/setup.h"
 #include "lua/virtual_path.h"
+#include "parser.h"
 #include "socket.h"
 #include <netinet/in.h>
 #include <poll.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
-void threadJob(int client_sockfd, const char *server) {
+void threadJob(int client_sockfd, const char *server,
+               const keep_alive_t *keep_alive) {
   signal(SIGINT, NULL);
   char buf[KB_1 * 8];
+  keep_alive_t local_keep_alive = {};
+  memcpy(&local_keep_alive, keep_alive, sizeof(keep_alive_t));
   log_info("Serving client fd:%d", client_sockfd);
+  if (local_keep_alive.keep_alive)
+    log_info("All connection will have a %d sec time out with %d max request",
+             local_keep_alive.timeout, local_keep_alive.max);
+  else
+    log_info("All connection will be closed!");
   int nbytes_read = read(client_sockfd, buf, BUFSIZ);
   int ret;
   switch (parseReq(buf, nbytes_read, client_sockfd, server)) {
@@ -57,7 +71,7 @@ int serve(const driver *drv) {
           void *client_address = calloc(1, client_len);
           if (!client_address) {
             perror("calloc,accept_logic");
-            log_fatal("Mem erroy");
+            log_fatal("Mem error");
             exit(1);
           }
           int client_sockfd = accept(fds[i].fd, client_address, &client_len);
@@ -66,7 +80,7 @@ int serve(const driver *drv) {
           free(client_address);
           pid_t pid = fork();
           if (pid == 0) {
-            threadJob(client_sockfd, drv->server_root);
+            threadJob(client_sockfd, drv->server_root, &(drv->keep_alive));
           } else if (pid == -1) {
             perror("handler,fork");
           } else
