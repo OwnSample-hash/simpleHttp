@@ -12,4 +12,4 @@
 - ~~the sockaddr addr struct is corrupt~~
 - Now resolvs ipv6 but not ipv4 and also the address family for ipv4 is 0 hmmm
 - [x] Is fixed?
-- - fixed by using some better shit idk check [src/thread_job.c](src/thread_job.c)
+- - fixed by using some better shit idk check [src/threadJob.c](src/threadJob.c)
