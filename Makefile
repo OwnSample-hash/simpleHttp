@@ -1,9 +1,12 @@
+BIN = simpleHttpd
+
 CC = clang
 LD = clang
-CFLAGS = -ggdb -DGIT_COMMIT=\"$(shell git rev-parse --short HEAD)\" -DLOG_USE_COLOR=1 -masm=intel -Wextra -Wall 
+CFLAGS = -ggdb -DBIN_NAME=\"${BIN}\" -DGIT_COMMIT=\"$(shell git rev-parse --short HEAD)\" -DLOG_USE_COLOR=1 -masm=intel -Wextra -Wall 
 LDFLAGS = -lmagic -llua -lm -ldl
 
-BIN = simpleHttpd
+CC_U = ${shell echo ${CC}-CC | sed 's/.*/\U&/'}
+LD_U = ${shell echo ${LD}-LD | sed 's/.*/\U&/'}
 
 _MAKE_DIR = make.dir
 SRC_DIR = src
@@ -49,10 +52,12 @@ $(BUILD_DIR):
 	mkdir -p $(patsubst $(SRC_DIR)%, $(BUILD_DIR)%, $(shell find $(SRC_DIR) -type d))
 
 $(BUILD_DIR)/%.o: $(SRC_DIR)/%.c | $(BUILD_DIR)
-	$(CC) $(CFLAGS) -c $< -o $@
+	@printf "\t%s  %s\n" ${CC_U} ${shell ./turn_fn.sh $<}
+	@$(CC) $(CFLAGS) -c $< -o $@
 
 $(BIN): $(OBJS)
-	$(LD) $(OBJS) $(LDFLAGS) -o $(BIN)
+	@printf "\t%s  %s\n" $(LD_U) ${BIN}
+	@$(LD) $(OBJS) $(LDFLAGS) -o $(BIN)
 
 clean:
 	rm ${BUILD_DIR} ${LUA_VER} ${LUA_VER}.tar.gz ${BIN} -rf
