@@ -2,7 +2,7 @@ BIN = simpleHttpd
 
 CC = clang
 LD = clang
-CFLAGS = -ggdb -DBIN_NAME=\"${BIN}\" -DGIT_COMMIT=\"$(shell git rev-parse --short HEAD)\" -DLOG_USE_COLOR=1 -masm=intel -Wextra -Wall 
+CFLAGS = -ggdb -DBIN_NAME=\"${BIN}\" -DGIT_COMMIT=\"$(shell git rev-parse --short HEAD)\" -DLOG_USE_COLOR=1 -Wextra -Wall 
 LDFLAGS = -lmagic -llua -lm -ldl
 
 CC_U = ${shell echo ${CC}-CC | sed 's/.*/\U&/'}
