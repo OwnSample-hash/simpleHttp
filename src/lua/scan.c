@@ -13,7 +13,7 @@ static int counter = 0;
 static lua_State *l;
 int _filter(const char *path, const stat_t *sb, int tflag, FTW_t *tfwbuf) {
   if (tflag == FTW_F) {
-    log_trace("Path: %s", path);
+    log_trace("Path: %s with size %d", path, sb->st_size);
     lua_pushstring(l, path);
     luaL_checktype(l, -1, LUA_TSTRING);
     luaL_checktype(l, -2, LUA_TTABLE);

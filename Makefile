@@ -1,5 +1,6 @@
 CC = clang
-CFLAGS = -ggdb -DGIT_COMMIT=\"$(shell git rev-parse --short HEAD)\" -DLOG_USE_COLOR=1 -masm=intel
+LD = clang
+CFLAGS = -ggdb -DGIT_COMMIT=\"$(shell git rev-parse --short HEAD)\" -DLOG_USE_COLOR=1 -masm=intel -Wextra -Wall 
 LDFLAGS = -lmagic -llua -lm -ldl
 
 BIN = simpleHttpd
@@ -51,7 +52,7 @@ $(BUILD_DIR)/%.o: $(SRC_DIR)/%.c | $(BUILD_DIR)
 	$(CC) $(CFLAGS) -c $< -o $@
 
 $(BIN): $(OBJS)
-	$(CC) $(OBJS) $(LDFLAGS) -o $(BIN)
+	$(LD) $(OBJS) $(LDFLAGS) -o $(BIN)
 
 clean:
-	rm ${BUILD_DIR} ${LUA_VER} ${BIN} -rf
+	rm ${BUILD_DIR} ${LUA_VER} ${LUA_VER}.tar.gz ${BIN} -rf

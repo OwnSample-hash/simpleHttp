@@ -18,7 +18,8 @@
 driver *drv;
 
 int main(int argc, char **argv) {
-  log_info("simpleHTTP-%s HTTP/1.1, with %s", GIT_COMMIT, LUA_RELEASE);
+  log_info("%s-%s HTTP/1.1, with %s, with %d args", argv[0], GIT_COMMIT,
+           LUA_RELEASE, argc);
   signal(SIGINT, ctrl_c_h);
   drv = calloc(1, sizeof(driver));
   drv->socket = calloc(MAX_OPEN_SOCKETS, sizeof(new_sock));
