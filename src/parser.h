@@ -9,9 +9,16 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
-static const char HEADER_CLOSE[] = "HTTP/1.1 200 Ok\r\nConnection: close\r\n";
-static const char HEADER_KEEP[] =
-    "HTTP/1.1 200 Ok\r\nConnection: Keep-Alive\r\nKeep-Alive: "
+#ifndef BIN_NAME
+#define BIN_NAME "simpleHttpd-" GIT_COMMIT
+#endif
+
+#ifndef HEADER_BASE
+#define HEADER_BASE "HTTP/1.1 200 Ok\r\nServer: " BIN_NAME "\r\n"
+#endif
+
+static const char HEADER_CLOSE[] = HEADER_BASE "Connection: close\r\n";
+static const char HEADER_KEEP[] = HEADER_BASE "Connection: Keep-Alive\r\nKeep-Alive: "
     "timeout=%d, max=%d\r\n";
 
 typedef struct __splits {
@@ -26,12 +33,13 @@ typedef enum {
   NO_STAT,
 } parseGet_t;
 
-int parseReq(char *request, size_t srequest, int client_fd, const char *root);
+parseGet_t parseReq(char *request, size_t srequest, int client_fd,
+                    const char *root, const keep_alive_t *keep_alive);
 parseGet_t parseGet(char *payload, size_t spayload, int client_fd,
-                    const char *root);
+                    const char *root, const keep_alive_t *keep_alive);
 splits_t splitOn_c(char *str, const char *delimiter);
 void erep(int client_fd);
 void strncatskip(char *dst, const char *src, size_t count, size_t offset);
-int genHeader(char *dst, const keep_alive_t *keep_alive);
+int genHeader(char **dst, const keep_alive_t *keep_alive);
 
 #endif /* __PARSER_SHTTP__ */

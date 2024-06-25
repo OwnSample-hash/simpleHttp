@@ -37,7 +37,9 @@ splits_t splitOn_c(char *str, const char *delimiter) {
   return head;
 }
 
-int parseReq(char *request, size_t srequest, int client_fd, const char *root) {
+parseGet_t parseReq(char *request, size_t srequest, int client_fd,
+                    const char *root, const keep_alive_t *keep_alive) {
+  log_info("Proccessing %ld bytes request", srequest);
   splits_t lines = splitOn_c(request, (const char *)"\n");
   char *cpyData = lines->data;
   splits_t wordsGet = splitOn_c(cpyData, (const char *)" ");
@@ -56,7 +58,7 @@ int parseReq(char *request, size_t srequest, int client_fd, const char *root) {
   payload = calloc(payload_len + 2, sizeof(char));
   snprintf(payload, payload_len + 2, "%s %s", wordsGet->data,
            wordsGet->next->data);
-  int ret = parseGet(payload, strlen(payload), client_fd, root);
+  int ret = parseGet(payload, strlen(payload), client_fd, root, keep_alive);
   if (ret != OK_GET) {
     log_trace("praseGet(...) != OK_GET is true, ret: %d", ret);
     log_info("Treating path (%s) as a virtual path", wordsGet->next->data);
@@ -70,7 +72,7 @@ int parseReq(char *request, size_t srequest, int client_fd, const char *root) {
 }
 
 parseGet_t parseGet(char *payload, size_t spayload, int client_fd,
-                    const char *root) {
+                    const char *root, const keep_alive_t *keep_alive) {
   char *fn = calloc(spayload + 2, sizeof(char));
   if (fn == NULL) {
     log_fatal("CALLOC FAILED");
@@ -95,11 +97,13 @@ parseGet_t parseGet(char *payload, size_t spayload, int client_fd,
   char *str_size = TO_BASE(src_stat.st_size, 10);
   int len_strelen = strlen(str_size);
   // first param const int is 21 working should be 37
+  char *header;
+  int header_len = genHeader(&header, keep_alive);
   char *header_payload =
-      calloc(37 + len_strelen + strlen(HEADER_CLOSE) + cntLen, sizeof(char));
+      calloc(37 + len_strelen + header_len + cntLen, sizeof(char));
 
-  snprintf(header_payload, 37 + len_strelen + strlen(HEADER_CLOSE) + cntLen,
-           "%s%s %jd\r\n%s", HEADER_CLOSE, "Content-Length:", src_stat.st_size,
+  snprintf(header_payload, 37 + len_strelen + header_len + cntLen,
+           "%s%s %jd\r\n%s", header, "Content-Length:", src_stat.st_size,
            cntTyp);
 
   write(client_fd, header_payload, strlen(header_payload));
@@ -114,6 +118,7 @@ parseGet_t parseGet(char *payload, size_t spayload, int client_fd,
     free(fn);
     free(header_payload);
     free(cntTyp);
+    free(header);
     return CALLOC;
   }
   size_t bytes_read = 0;
@@ -128,37 +133,39 @@ parseGet_t parseGet(char *payload, size_t spayload, int client_fd,
   free(fn);
   free(header_payload);
   free(cntTyp);
+  free(header);
   return OK_GET;
 }
 
 void strncatskip(char *dst, const char *src, size_t count, size_t offset) {
-  int i, j;
+  size_t i, j;
   for (i = offset, j = strlen(dst); i < count; i++, j++) {
     dst[j] = src[i];
   }
   dst[j + 1] = '\0';
 }
 
-int genHeader(char *dst, const keep_alive_t *keep_alive) {
+int genHeader(char **dst, const keep_alive_t *keep_alive) {
   if (keep_alive->keep_alive) {
-    int len = strlen(HEADER_CLOSE) + strlen(TO_BASE(keep_alive->timeout, 10)) +
+    int len = strlen(HEADER_KEEP) + strlen(TO_BASE(keep_alive->timeout, 10)) +
               strlen(TO_BASE(keep_alive->max, 10));
-    dst = calloc(len, sizeof(char));
+    log_trace("Got %d len for keep alive header", len);
+    *dst = calloc(len, sizeof(char));
     if (!dst) {
       log_fatal("Failed to calloc mem for header");
       perror("calloc");
       return -1;
     }
-    return snprintf(dst, len, HEADER_KEEP, keep_alive->timeout,
+    return snprintf(*dst, len, HEADER_KEEP, keep_alive->timeout,
                     keep_alive->max);
   } else {
-    dst = calloc(strlen(HEADER_CLOSE), sizeof(char));
+    *dst = calloc(strlen(HEADER_CLOSE), sizeof(char));
     if (!dst) {
       log_fatal("Failed to calloc mem for header");
       perror("calloc");
       return -1;
     }
-    strncpy(dst, HEADER_CLOSE, strlen(HEADER_CLOSE));
+    strncpy(*dst, HEADER_CLOSE, strlen(HEADER_CLOSE));
     return strlen(HEADER_CLOSE);
   }
 }
