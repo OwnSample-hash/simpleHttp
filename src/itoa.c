@@ -1,4 +1,5 @@
 #include "itoa.h"
+#include <stdlib.h>
 
 char *itoa_base(char *s, int x, int base) {
   s += ITOA_BASE_N - 1;
