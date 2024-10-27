@@ -16,13 +16,8 @@ CSRCS = $(shell find ${SRC_DIR} -type f -name "*.c")
 
 OBJS = $(patsubst $(SRC_DIR)/%.c, $(BUILD_DIR)/%.o, $(CSRCS))
 
-all: backup ${BIN}
+all: ${BIN}
 	@printf "\tDone bulding\n"
-
-backup:
-	@if [[ -f ${BIN} ]]; then \
-		mv ${BIN} ${BIN}.prev; \
-	fi
 
 restore:
 	mv ${BIN}.prev ${BIN}

@@ -144,5 +144,8 @@ void log_log(int level, const char *file, int line, const char *fmt, ...) {
     }
   }
 
+  if (level == LOG_FATAL)
+    abort();
+
   unlock();
 }

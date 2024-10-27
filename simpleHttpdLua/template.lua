@@ -101,7 +101,7 @@ function Template.DoFile(path, args)
   local ret = processedLine
   while success and coroutine.status(co) ~= "dead" do
     success, processedLine = coroutine.resume(co)
-    ret = ret .. processedLine
+    ret = ret .. (processedLine or "")
   end
   if not success then
     log(LOG_ERROR, "Coroutine error: %s", processedLine)
