@@ -2,6 +2,7 @@
 #define __THREADJOB_HTTP__
 
 #include "lua/setup.h"
+#include <mqueue.h>
 #include <stdbool.h>
 #include <sys/wait.h>
 
@@ -14,6 +15,7 @@ typedef enum {
 
 typedef struct {
   int cfd;
+  mqd_t mq;
   keep_alive_t *keep_alive;
 } quit_status_t;
 

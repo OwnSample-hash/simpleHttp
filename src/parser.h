@@ -6,7 +6,6 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <strings.h>
-#include <sys/stat.h>
 #include <unistd.h>
 
 #ifndef BIN_NAME
@@ -18,8 +17,9 @@
 #endif
 
 static const char HEADER_CLOSE[] = HEADER_BASE "Connection: close\r\n";
-static const char HEADER_KEEP[] = HEADER_BASE "Connection: Keep-Alive\r\nKeep-Alive: "
-    "timeout=%d, max=%d\r\n";
+static const char HEADER_KEEP[] =
+    HEADER_BASE "Connection: Keep-Alive\r\nKeep-Alive: "
+                "timeout=%d, max=%d\r\n";
 
 typedef struct __splits {
   char *data;

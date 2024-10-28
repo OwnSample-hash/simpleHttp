@@ -7,7 +7,7 @@ set_server_root("server")
 set_routes_root("routes")
 
 set_keep_alive({
-	keep_alive = true,
+	keep_alive = false,
 	timeout = 5,
-	max = 500
+	max = 500,
 })

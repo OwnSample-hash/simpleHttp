@@ -2,25 +2,27 @@ Template = Template or {}
 
 Template.html = Template.html or {}
 
-Template.current_ret = ""
+Template.html.current_ret = ""
 
-function Template.html(tag, str)
-  Template.current_ret = Template.current_ret .. "<" .. tag .. ">" .. tostring(str) .. "</" .. tag .. ">\n"
+function Template.html.li(str)
+  Template.html.current_ret = Template.html.current_ret .. "<li>" .. tostring(str) .. "</li>\n"
+end
+
+function Template.html.title(str)
+  Template.html.current_ret = "<title>" .. tostring(str) .. "</title>"
 end
 
 ---Processes a function chunk
 ---@param code string
 ---@param args table
 local function ProcessFunction(code, args)
-  local env = Template.joinTables(args,
+  local env = Template.joinTables(Template.html, args,
     {
       print = print,
       pairs = pairs,
       next = next,
       ipairs = ipairs,
       tostring = tostring
-    }, {
-      html = Template.html
     }
   )
   local fn = load(code, nil, "t", env)
@@ -52,8 +54,8 @@ function Template.DoFileCoro(path, args)
       function_code = function_code:format("\n")
       ProcessFunction(function_code, args)
       function_code = "%s"
-      coroutine.yield(Template.current_ret)
-      Template.current_ret = ""
+      coroutine.yield(Template.html.current_ret)
+      Template.html.current_ret = ""
       goto continue
     end
     if dump_code then
@@ -79,7 +81,7 @@ function Template.joinTables(t1, t2, t3)
   local result = {}
   result.html = {}
   for k, v in pairs(t1) do
-    result[k] = v
+    result.html[k] = v
   end
   for k, v in pairs(t2) do
     result[k] = v
@@ -99,9 +101,7 @@ function Template.DoFile(path, args)
   local ret = processedLine
   while success and coroutine.status(co) ~= "dead" do
     success, processedLine = coroutine.resume(co)
-    if processedLine then
-      ret = ret .. processedLine
-    end
+    ret = ret .. (processedLine or "")
   end
   if not success then
     log(LOG_ERROR, "Coroutine error: %s", processedLine)
