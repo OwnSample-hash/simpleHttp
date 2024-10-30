@@ -99,16 +99,38 @@ function Dump_table(base_tbl, depth)
   return tmplt1:format(ret_str)
 end
 
+FTW = {
+  PHYS = 1,
+  CD = 4
+}
+
 ---Scans a dir
 ---@param path string
+---@param flag number
 ---@return table(string)
-function Scan(path)
-  return scan_(path)
+function Scan(path, flag)
+  return scan_(path, flag)
 end
 
 log(LOG_INFO, "Adding routes automaticlly")
-local routes_dir = "routes/"
-local routes_scan = Scan(routes_dir)
+local routes_dir = "routes/" -- TODO use what comes from the config if i made it
+local routes_scan_raw = Scan(routes_dir, FTW.PHYS)
+local routes_scan = {}
+
+local function table_printer(x)
+  for k, v in pairs(x) do
+    if type(v) == "table" then
+      table_printer(v)
+    else
+      log(LOG_DEBUG, "%s: %s", k, tostring("v"))
+    end
+  end
+end
+
+for k, _ in pairs(routes_scan_raw) do
+  routes_scan.insert(k)
+end
+
 
 if routes_scan then
   if type(routes_scan) == 'table' then

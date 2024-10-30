@@ -8,11 +8,11 @@ function CreateAutoIndex(fpath, vpath)
     -- accept dir
     -- auto add dir to vpath function or mark the main vpath as AutoIndex
     -- do as while that dir is the cd; nftw flag
-    --
+
     local contents = Scan(fpath)
     for k, v in pairs(contents) do
       print(k .. ":" .. tostring(v))
     end
-    Template.DoFile("./simpleHttpdLua/autoindex.html", { files = contents })
+    return Template.DoFile("./simpleHttpdLua/autoindex.html", { files = contents })
   end)
 end
