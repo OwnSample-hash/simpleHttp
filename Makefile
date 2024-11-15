@@ -3,7 +3,7 @@ BIN = simpleHttpd
 CC = clang
 LD = clang
 CFLAGS = -ggdb -DBIN_NAME=\"${BIN}\" -DGIT_COMMIT=\"$(shell git rev-parse --short HEAD)\" -DLOG_USE_COLOR=1 -Wextra -Wall 
-LDFLAGS = -lmagic -llua -lm -ldl
+LDFLAGS = -lmagic -llua -lm -ldl -ggdb
 
 CC_U = ${shell echo ${CC}-CC | sed 's/.*/\U&/'}
 LD_U = ${shell echo ${LD}-LD | sed 's/.*/\U&/'}
@@ -17,7 +17,7 @@ CSRCS = $(shell find ${SRC_DIR} -type f -name "*.c")
 OBJS = $(patsubst $(SRC_DIR)/%.c, $(BUILD_DIR)/%.o, $(CSRCS))
 
 all: ${BIN}
-	@printf "\tDone bulding\n"
+	@printf "  Done bulding\n"
 
 restore:
 	mv ${BIN}.prev ${BIN}
@@ -44,15 +44,17 @@ prolog:
 
 
 $(BUILD_DIR):
-	mkdir -p $(patsubst $(SRC_DIR)%, $(BUILD_DIR)%, $(shell find $(SRC_DIR) -type d))
+	@printf "  %-9s %s" "MKDIR" $(patsubst $(SRC_DIR)%, $(BUILD_DIR)%, $(shell find $(SRC_DIR) -type d))
+	@mkdir -p $(patsubst $(SRC_DIR)%, $(BUILD_DIR)%, $(shell find $(SRC_DIR) -type d))
 
 $(BUILD_DIR)/%.o: $(SRC_DIR)/%.c | $(BUILD_DIR)
-	@printf "\t%s  %s\n" ${CC_U} ${shell ./turn_fn.sh $<}
+	@printf "  %s  %s\n" ${CC_U} ${shell echo $< | rev | tr '/' '\n' | rev | head -1}
 	@$(CC) $(CFLAGS) -c $< -o $@
 
 $(BIN): $(OBJS)
-	@printf "\t%s  %s\n" $(LD_U) ${BIN}
+	@printf "  %s  %s\n" $(LD_U) ${BIN}
 	@$(LD) $(OBJS) $(LDFLAGS) -o $(BIN)
 
 clean:
-	rm ${BUILD_DIR} ${LUA_VER} ${LUA_VER}.tar.gz ${BIN} -rf
+	@printf "  %-9s %s\n" "RM" "${LUA_VER} ${LUA_VER}.tar.gz ${BIN}"
+	@rm -rf ${BUILD_DIR} ${LUA_VER} ${LUA_VER}.tar.gz ${BIN}
