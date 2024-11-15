@@ -1,9 +1,9 @@
 BIN = simpleHttpd
 
-CC = clang
-LD = clang
-CFLAGS = -ggdb -DBIN_NAME=\"${BIN}\" -DGIT_COMMIT=\"$(shell git rev-parse --short HEAD)\" -DLOG_USE_COLOR=1 -Wextra -Wall 
-LDFLAGS = -lmagic -llua -lm -ldl
+CC=clang
+LD=clang
+CFLAGS=-ggdb -DBIN_NAME=\"${BIN}\" -DGIT_COMMIT=\"$(shell git rev-parse --short HEAD)\" -DLOG_USE_COLOR=1 -Wextra -Wall 
+LDFLAGS=-lmagic -llua -lm -ldl
 
 CC_U = ${shell echo ${CC}-CC | sed 's/.*/\U&/'}
 LD_U = ${shell echo ${LD}-LD | sed 's/.*/\U&/'}
@@ -17,17 +17,19 @@ CSRCS = $(shell find ${SRC_DIR} -type f -name "*.c")
 OBJS = $(patsubst $(SRC_DIR)/%.c, $(BUILD_DIR)/%.o, $(CSRCS))
 
 all: ${BIN}
-	@printf "\tDone bulding\n"
+	@printf "  Done bulding\n"
 
 restore:
 	mv ${BIN}.prev ${BIN}
 
 LUA_VER = lua-5.4.6
 install_lua:
-	rm ${LUA_VER}.tar.gz -f
-	rm ${LUA_VER} -rf
-	wget https://www.lua.org/ftp/${LUA_VER}.tar.gz
-	tar xf ${LUA_VER}.tar.gz
+	@printf "  %-9s %s\n" "RM" "${LUA_VER} ${LUA_VER}.tar.gz"
+	@rm ${LUA_VER} ${LUA_VER}.tar.gz -f
+	@printf "  %-9s %s\n" "WGET" "https://www.lua.org/ftp/${LUA_VER}.tar.gz"
+	@wget https://www.lua.org/ftp/${LUA_VER}.tar.gz
+	@printf "  %-9s %s\n" "TAR" "${LUA_VER}.tar.gz"
+	@tar xf ${LUA_VER}.tar.gz
 	$(MAKE) -C ${LUA_VER}/ -j
 	${eval CFLAGS += -I${LUA_VER}/src/}
 	${eval LDFLAGS += -L${LUA_VER}/src/}
@@ -44,15 +46,17 @@ prolog:
 
 
 $(BUILD_DIR):
-	mkdir -p $(patsubst $(SRC_DIR)%, $(BUILD_DIR)%, $(shell find $(SRC_DIR) -type d))
+	@printf "  %-8s %s\n" "MKDIR" "$(patsubst $(SRC_DIR)%, $(BUILD_DIR)%, $(shell find $(SRC_DIR) -type d))"
+	@mkdir -p $(patsubst $(SRC_DIR)%, $(BUILD_DIR)%, $(shell find $(SRC_DIR) -type d))
 
 $(BUILD_DIR)/%.o: $(SRC_DIR)/%.c | $(BUILD_DIR)
-	@printf "\t%s  %s\n" ${CC_U} ${shell ./turn_fn.sh $<}
+	@printf "  %s  %s\n" ${CC_U} ${shell echo $< | rev | tr '/' '\n' | rev | head -1}
 	@$(CC) $(CFLAGS) -c $< -o $@
 
 $(BIN): $(OBJS)
-	@printf "\t%s  %s\n" $(LD_U) ${BIN}
+	@printf "  %s  %s\n" $(LD_U) ${BIN}
 	@$(LD) $(OBJS) $(LDFLAGS) -o $(BIN)
 
 clean:
-	rm ${BUILD_DIR} ${LUA_VER} ${LUA_VER}.tar.gz ${BIN} -rf
+	@printf "  %-9s %s\n" "RM" "${LUA_VER} ${LUA_VER}.tar.gz ${BIN}"
+	@rm -rf ${BUILD_DIR} ${LUA_VER} ${LUA_VER}.tar.gz ${BIN}
