@@ -18,7 +18,7 @@
 driver *drv;
 
 int main(int argc, char **argv) {
-  log_info("%s-%s HTTP/1.1, with %s, with %d args", argv[0], GIT_COMMIT,
+  log_info("%s %s HTTP/1.1, with %s, with %d args", argv[0] + 2, GIT_COMMIT,
            LUA_RELEASE, argc);
   signal(SIGINT, ctrl_c_h);
   drv = calloc(1, sizeof(driver));

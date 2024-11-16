@@ -8,6 +8,9 @@
 #include "mime_guess.h"
 #include <stdio.h>
 #include <string.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <unistd.h>
 
 void erep(int client_fd) {
   static const char payload[] = "HTTP/1.1 404 Not Found\r\n"
