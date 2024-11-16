@@ -24,7 +24,12 @@ int _filter(const char *path, const stat_t *sb, int tflag, FTW_t *tfwbuf) {
     lua_pushinteger(l, sb->st_mtime);
     lua_settable(l, -3);
 
-    lua_settable(l, table_index);
+    lua_pushstring(l, "path");
+    lua_pushstring(l, path);
+    lua_settable(l, -3);
+
+    lua_rawseti(l, table_index, lua_rawlen(l, table_index) + 1);
+    counter++;
     return 0;
   } else {
     log_trace("Ignoring \"%s\" on level %d", path, tfwbuf->level);
@@ -36,11 +41,12 @@ int lua_scan_(lua_State *L) {
   luaL_checkstring(L, 1);
   luaL_checknumber(L, 2);
   const char *path = lua_tostring(L, 1);
+  const int flag = lua_tonumber(L, 2);
   counter = 0;
   lua_newtable(L);
   table_index = lua_gettop(L);
   l = L;
-  int n = nftw(path, _filter, 5, FTW_PHYS);
+  int n = nftw(path, _filter, 5, flag);
   if (n == -1) {
     log_error("nftw failed to scan dir");
     perror("nftw");

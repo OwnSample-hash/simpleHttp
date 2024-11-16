@@ -17,10 +17,14 @@ void lua_init(const char *root) {
   log_trace("pushed lua_%s, and setted as global: %s", #fn, #fn);
   LUA_FUNCS_
 #undef REG
+  const char *lua_code = "local status, err = xpcall(function() require "
+                         "'simpleHttpdLua' end, debug.traceback); "
+                         "if not status then error(err) end;";
+  if (luaL_dostring(gL, lua_code) != LUA_OK) {
+    const char *error_msg = lua_tostring(gL, -1);
 
-  if (luaL_dostring(gL, "require \"simpleHttpdLua\"") != LUA_OK) {
-    log_error("LUA ERROR");
-    luaL_error(gL, "Error %s\n", lua_tostring(gL, -1));
+    log_error("LUA ERROR with stacktrace");
+    luaL_error(gL, "Error: %s\n", error_msg);
   }
   log_info("Lua ran successfully.");
 }
