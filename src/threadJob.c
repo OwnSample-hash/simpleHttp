@@ -104,7 +104,7 @@ void threadJob(int client_sockfd, const char *server,
       break;
     }
   }
-  if (!close(client_sockfd)) {
+  if (close(client_sockfd)) {
     perror("close");
     log_debug("Failed to close socket %d", client_sockfd);
   }
@@ -112,7 +112,7 @@ void threadJob(int client_sockfd, const char *server,
   exit(0);
 }
 
-int serve(const driver *drv) {
+int serve(const driver_t *drv) {
   struct pollfd fds[open_sockets_len];
   for (int i = 0; i < open_sockets_len; i++) {
     fds[i].fd = open_sockets[i].fd;
@@ -151,16 +151,19 @@ int serve(const driver *drv) {
           free(client_address);
           pid_t pid = fork();
           if (pid == 0) {
-            if (!close(fds[i].fd)) {
-              log_error("Cloudn't close listening socket %d", fds[i].fd);
-              perror("close,handler,server_sock");
+            for (int i = 0; i < open_sockets_len; i++) {
+              if (close(open_sockets[i].fd)) {
+                log_warn("Cloudn't close listening socket %d it's closed tho",
+                         open_sockets[i].fd);
+                perror("close,handler,server_sock");
+              }
             }
             threadJob(client_sockfd, drv->server_root, &(drv->keep_alive));
           } else if (pid == -1) {
             perror("handler,fork");
           } else {
             log_debug("serve_pid:%d", pid);
-            if (!close(client_sockfd)) {
+            if (close(client_sockfd)) {
               log_error("Failed to close %d", client_sockfd);
               perror("close,parent");
             }
