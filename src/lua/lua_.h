@@ -8,7 +8,7 @@
 
 extern lua_State *gL;
 
-void lua_init(const char *root);
+void lua_init(const char *routes, const char *server);
 #define LUA_FUNCS_                                                             \
   REG(log_log)                                                                 \
   REG(scan_)                                                                   \

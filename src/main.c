@@ -15,13 +15,13 @@
 #define GIT_COMMIT "none-given"
 #endif
 
-driver *drv;
+driver_t *drv;
 
 int main(int argc, char **argv) {
   log_info("%s %s HTTP/1.1, with %s, with %d args", argv[0] + 2, GIT_COMMIT,
            LUA_RELEASE, argc);
   signal(SIGINT, ctrl_c_h);
-  drv = calloc(1, sizeof(driver));
+  drv = calloc(1, sizeof(driver_t));
   drv->socket = calloc(MAX_OPEN_SOCKETS, sizeof(new_sock));
 
 #ifndef NO_LOG

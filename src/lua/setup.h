@@ -18,9 +18,9 @@ typedef struct _drv {
   char *routes_root;
   char **methods;
   keep_alive_t keep_alive;
-} driver;
+} driver_t;
 
-void init(const char *conf_file, driver *drv);
+void init(const char *conf_file, driver_t *drv);
 
 #define LUA_FUNCS_INIT                                                         \
   REG(create_socket)                                                           \

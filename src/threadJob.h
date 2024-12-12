@@ -19,7 +19,7 @@ typedef struct {
   keep_alive_t *keep_alive;
 } quit_status_t;
 
-int serve(const driver *drv);
+int serve(const driver_t *drv);
 void threadJob(int client_sockfd, const char *server,
                const keep_alive_t *keep_alive);
 
