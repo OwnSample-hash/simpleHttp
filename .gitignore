@@ -10,3 +10,4 @@ gmon.out
 simpleHttpd.prev
 simpleHttp.trace
 .gdb_history
+*.trace
