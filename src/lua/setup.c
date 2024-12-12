@@ -10,14 +10,14 @@
 int lua_create_socket(lua_State *L) {
   luaL_checkstring(L, 1);  // IP
   luaL_checkinteger(L, 2); // PORT
-  luaL_checkstring(L, 3);  // DOMAIN
+  luaL_checkinteger(L, 3); // DOMAIN
   luaL_checkinteger(L, 4); // LISTEN
-  luaL_checkstring(L, 5);  // PROTO
+  luaL_checkinteger(L, 5); // PROTO
   const char *ip = lua_tostring(L, 1);
   int port = lua_tointeger(L, 2);
-  const char *domain = lua_tostring(L, 3);
+  int domain = lua_tonumber(L, 3);
   int listen = lua_tonumber(L, 4);
-  const char *proto = lua_tostring(L, 5);
+  int proto = lua_tonumber(L, 5);
 
   new_sock *ns = calloc(1, sizeof(new_sock));
   if (!ns) {
@@ -29,7 +29,7 @@ int lua_create_socket(lua_State *L) {
 
   lua_getglobal(L, "__DRV");
   luaL_checktype(L, -1, LUA_TLIGHTUSERDATA);
-  driver *drv = lua_touserdata(L, -1);
+  driver_t *drv = lua_touserdata(L, -1);
   if (!drv) {
     log_fatal("Failed to get drv");
     return 0;
@@ -37,22 +37,9 @@ int lua_create_socket(lua_State *L) {
   ns->addr = calloc(MAX_ADDR_LEN, sizeof(char));
   strncpy((char *)ns->addr, ip, strlen(ip));
   memcpy((int *)&(ns->port), &port, sizeof(int));
-
-#define DOMAINS_                                                               \
-  X("AF_INET", AF_INET)                                                        \
-  X("AF_INET6", AF_INET6)
-
-#define X(str, domain_)                                                        \
-  if (strncmp(str, domain, strlen(str)) == 0) {                                \
-    int tmp = domain_;                                                         \
-    memcpy((int *)&(ns->domain), &tmp, sizeof(int));                           \
-  }
-  DOMAINS_
-#undef X
+  memcpy((int *)&(ns->domain), &domain, sizeof(int));
   memcpy((int *)&(ns->listen), &listen, sizeof(int));
-  int *proto_ = atoproto(proto);
-  memcpy((int *)&(ns->proto), proto_, sizeof(int));
-  free(proto_);
+  memcpy((int *)&(ns->proto), &proto, sizeof(int));
 
   drv->socket[drv->socket_count++] = ns;
   return 0;
@@ -62,7 +49,7 @@ int lua_set_server_root(lua_State *L) {
   luaL_checkstring(L, 1);
   lua_getglobal(L, "__DRV");
   luaL_checktype(L, -1, LUA_TLIGHTUSERDATA);
-  driver *drv = lua_touserdata(L, -1);
+  driver_t *drv = lua_touserdata(L, -1);
   const char *tmp = lua_tostring(L, 1);
   drv->server_root = calloc(strlen(tmp), sizeof(char));
   strncpy((char *)drv->server_root, tmp, strlen(tmp));
@@ -73,7 +60,7 @@ int lua_set_routes_root(lua_State *L) {
   luaL_checkstring(L, 1);
   lua_getglobal(L, "__DRV");
   luaL_checktype(L, -1, LUA_TLIGHTUSERDATA);
-  driver *drv = lua_touserdata(L, -1);
+  driver_t *drv = lua_touserdata(L, -1);
   const char *tmp = lua_tostring(L, 1);
   drv->routes_root = calloc(strlen(tmp), sizeof(char));
   strncpy((char *)drv->routes_root, tmp, strlen(tmp));
@@ -90,7 +77,7 @@ int lua_set_keep_alive(lua_State *L) {
   luaL_checktype(L, 1, LUA_TTABLE);
   lua_getglobal(L, "__DRV");
   luaL_checktype(L, -1, LUA_TLIGHTUSERDATA);
-  driver *drv = lua_touserdata(L, -1);
+  driver_t *drv = lua_touserdata(L, -1);
   lua_pushstring(L, "keep_alive");
   lua_gettable(L, 1);
   drv->keep_alive.keep_alive = lua_toboolean(L, -1);
@@ -108,7 +95,39 @@ int lua_set_keep_alive(lua_State *L) {
   return 0;
 }
 
-void init(const char *conf_file, driver *drv) {
+int lua_add_http_method(lua_State *L) {
+  luaL_checkstring(L, 1);
+  lua_getglobal(L, "__DRV");
+  driver_t *drv = lua_touserdata(L, -1);
+  const char *tmp = lua_tostring(L, 1);
+  int i = 0;
+  while (drv->methods[i] != NULL) {
+    i++;
+  }
+  drv->methods[i] = reallocarray(drv->methods, i + 1, sizeof(char *));
+  if (!drv->methods[i]) {
+    perror("reallocarray,lua_add_http_method");
+    log_fatal("Failed to realloc memory for methods");
+    lua_pushliteral(L, "Failed to realloc memory for methods");
+    lua_error(L);
+  }
+  drv->methods[i] = strdup(tmp);
+  drv->methods[i + 1] = NULL;
+  return 0;
+}
+
+void init(const char *conf_file, driver_t *drv) {
+  drv->methods = calloc(5, sizeof(char *));
+  if (!drv->methods) {
+    perror("calloc,init");
+    log_fatal("Failed to calloc memory for methods");
+    exit(1);
+  }
+  drv->methods[0] = strdup("GET");
+  drv->methods[1] = strdup("POST");
+  drv->methods[2] = strdup("PUT");
+  drv->methods[3] = strdup("DELETE");
+  drv->methods[4] = NULL;
   lua_State *L_conf = luaL_newstate();
   luaL_openlibs(L_conf);
   lua_pushlightuserdata(L_conf, drv);
@@ -116,7 +135,8 @@ void init(const char *conf_file, driver *drv) {
 
 #define ADD(value)                                                             \
   lua_pushnumber(L_conf, value);                                               \
-  lua_setglobal(L_conf, #value);
+  lua_setglobal(L_conf, #value);                                               \
+  log_trace("[CONFIG] pushed %s, and setted as global: %s", #value, #value);
   LVLS
 #undef ADD
   // clang-format off

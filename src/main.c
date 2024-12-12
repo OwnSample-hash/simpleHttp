@@ -42,7 +42,7 @@ int main(int argc, char **argv) {
     fds[i] = createSocket(drv->socket[i]);
   log_info("Routes root:\"%s\"", drv->routes_root);
   log_info("Server root:\"%s\"", drv->server_root);
-  lua_init(drv->routes_root);
+  lua_init(drv->routes_root, drv->server_root);
   for (int i = 0; i < drv->socket_count; i++)
     log_info(
         "Url: %s://%s%s%s:%d/", prototoa(drv->socket[i]->proto),

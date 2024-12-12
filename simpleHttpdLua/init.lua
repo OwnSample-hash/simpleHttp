@@ -133,9 +133,10 @@ function Scan(path, flag)
 end
 
 Log(LOG_INFO, "Adding routes automaticlly")
-local routes_scan_raw = Scan(SERVER_ROOT, FTW.PHYS)
+local routes_scan_raw = Scan(ROUTES_ROOT, FTW.PHYS)
 Log(LOG_TRACE, "Returned from scan")
-local routes_dir = "routes/" -- TODO: use what comes from the config if i made it
+local routes_dir = ROUTES_ROOT or "routes/" -- TODO: use what comes from the config if i made it
+Log(LOG_TRACE, "routes_dir %s", ROUTES_ROOT)
 local routes_scan = {}
 
 local function table_printer(x)

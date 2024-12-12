@@ -5,11 +5,13 @@
 #include <unistd.h>
 
 lua_State *gL;
-void lua_init(const char *root) {
+void lua_init(const char *routes, const char *server) {
   gL = luaL_newstate();
   luaL_openlibs(gL);
-  lua_pushstring(gL, root);
+  lua_pushstring(gL, server);
   lua_setglobal(gL, "SERVER_ROOT");
+  lua_pushstring(gL, routes);
+  lua_setglobal(gL, "ROUTES_ROOT");
 
 #define REG(fn)                                                                \
   lua_pushcfunction(gL, lua_##fn);                                             \
