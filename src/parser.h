@@ -31,6 +31,7 @@ typedef enum {
   OK_GET = 0,
   NOT_FOUND,
   NO_STAT,
+  WRONG_PROTOCOL
 } parseGet_t;
 
 parseGet_t parseReq(char *request, size_t srequest, int client_fd,

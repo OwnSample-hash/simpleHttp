@@ -11,6 +11,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
 void thread_quit(int code, void *arg) {
   quit_status_t *quit_status = arg;
@@ -77,7 +78,12 @@ void threadJob(int client_sockfd, const char *server,
         case HANDLED:
           log_debug("Client handeld other ways");
           break;
+        case WRONG_PROTOCOL:
+          log_debug("Client use wrong protocol");
+          erep(client_sockfd);
+          break;
         default:
+          erep(client_sockfd);
           break;
         }
       }

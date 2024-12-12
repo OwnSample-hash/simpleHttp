@@ -49,6 +49,10 @@ parseGet_t parseReq(char *request, size_t srequest, int client_fd,
   // wordsGet[0] == GET
   // wordsGet[1] == $PATH
   // wordsGet[2] == HTTP/1.1
+  if (strncmp(wordsGet->next->next->data, "HTTP/1.1", 8) != 0) {
+    log_error("Request is not HTTP/1.1 got %s ", wordsGet->next->next->data);
+    return WRONG_PROTOCOL;
+  }
   if (wordsGet->next != NULL) {
     if (strcmp(wordsGet->next->data, "/") == 0)
       wordsGet->next->data = "/index.html";
