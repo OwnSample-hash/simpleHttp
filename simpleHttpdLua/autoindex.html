@@ -2,7 +2,7 @@
 <html lang="en">
 	<head>
 	    <lua>
-				title('title')
+	      title('title')
 	    </lua>
 	    <meta charset="UTF-8">
 	    <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -10,10 +10,11 @@
 	<body>
 	    <ul>
 	    <lua>
-	      for k, v in pairs(files) do
-	       p(li(tostring(v.path)))
-	      end
+                for k, v in pairs(files) do
+                 p(li(tostring(v.path)))
+                end
 	    </lua>
 	    </ul>
 	</body>
 </html>
+<!--Vim: set expandtab tabstop=2 shiftwidth=2:-->
