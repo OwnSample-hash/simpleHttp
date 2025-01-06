@@ -1,6 +1,7 @@
 #include "virtual_path.h"
+#include "../itoa.h"
 #include "../mime_guess.h"
-#include "../parser.h"
+#include "../write_response.h"
 #include "lua_.h"
 #include <lauxlib.h>
 #include <lua.h>
@@ -8,16 +9,18 @@
 #include <string.h>
 #include <unistd.h>
 
-lookup_status virtual_path_resolv(const char *path, const int cfd) {
+lookup_status virtual_path_resolv(const char *path, const int cfd,
+                                  const char *method,
+                                  const keep_alive_t *keep_alive) {
+  char *cntTyp;
+  const char *payload;
+  int payload_len;
   log_info("Looking up path: %s", path);
   lua_pushnumber(gL, cfd);
   lua_setglobal(gL, "__CFD");
   lua_getglobal(gL, "_Funcs");
   lua_getfield(gL, -1, path);
   if (!lua_isnil(gL, -1)) {
-    const char *payload;
-    char *cntTyp;
-    int payload_len;
     if (lua_isstring(gL, -1)) {
       log_trace("L, -1 is a string, returning");
       payload = lua_tostring(gL, -1);
@@ -25,25 +28,37 @@ lookup_status virtual_path_resolv(const char *path, const int cfd) {
       cntTyp = NULL;
     } else if (lua_istable(gL, -1)) {
       log_trace("L, -1 is a table, parsing");
-      lua_getfield(gL, -1, "fn");
-      luaL_checktype(gL, -1, LUA_TFUNCTION);
-      lua_call(gL, 0, 1);
-      payload = lua_tostring(gL, -1);
-      payload_len = strlen(payload);
-      log_trace("From tbl[fn] call got string, with len of %d", payload_len);
-      lua_getfield(gL, -2, "cntp");
-      log_trace("Checking if -1 is string ");
-      luaL_checktype(gL, -1, LUA_TSTRING);
-      cntTyp = NULL;
-      if (cntTyp == NULL) {
-        log_trace("Failing back to auto MIME detection");
+      lua_getfield(gL, -1, "meth");
+      luaL_checktype(gL, -1, LUA_TTABLE);
+      lua_pushnil(gL);
+      while (lua_next(gL, -2) != 0) {
+        const char *meth = lua_tostring(gL, -1);
+        log_trace("Checking if %s == %s", meth, method);
+        if (strcmp(meth, method) == 0) {
+          log_trace("Found method");
+          lua_getfield(gL, -4, "fn");
+          luaL_checktype(gL, -1, LUA_TFUNCTION);
+          lua_call(gL, 0, 1);
+          if (lua_isstring(gL, -1)) {
+            log_trace("From tbl[meth][fn] call got string");
+          } else {
+            log_trace("From tbl[meth][fn] call got %s",
+                      lua_typename(gL, lua_type(gL, -1)));
+          }
+          payload = lua_tostring(gL, -1);
+          payload_len = strlen(payload);
+          log_trace("From tbl[meth][fn] call got string, with len of %d",
+                    payload_len);
+          cntTyp = NULL;
+          break;
+        } else {
+          log_trace("No match");
+          continue;
+        }
+        lua_pop(gL, 1);
       }
-    } else {
-      log_trace("L, -1 is a func, calling");
-      lua_call(gL, 0, 1);
-      payload = lua_tostring(gL, -1);
-      payload_len = strlen(payload);
-      log_trace("From function call got string, with len of %d", payload_len);
+      log_trace("Done parsing table");
+      lua_pop(gL, 1);
     }
     if (strncmp(payload, "$!HANDELD", 9) == 0) {
       log_trace("Lua handeld response...");
@@ -54,20 +69,17 @@ lookup_status virtual_path_resolv(const char *path, const int cfd) {
       log_error("Failed to get content type");
     }
     log_trace("RETURNED %s", cntTyp);
-    int cntLen = strlen(cntTyp);
-    // first param const int is 21 working should be 37
-    char *header_payload =
-        calloc(35 + payload_len + strlen(HEADER_CLOSE) + cntLen, sizeof(char));
-
-    snprintf(header_payload, 35 + payload_len + strlen(HEADER_CLOSE) + cntLen,
-             "%s%s %d\r\n%s", HEADER_CLOSE, "Content-Length:", payload_len,
-             cntTyp);
-    write(cfd, header_payload, strlen(header_payload));
-    write(cfd, "\r\n", 2);
-    write(cfd, payload, payload_len);
-    // write(cfd, "\r\n", 2);
+    response_t *resp = newRespones(cfd, lookupStatus(200), keep_alive);
+    if (!resp) {
+      log_error("Failed to create response");
+      return NIL;
+    }
+    addHeader2Response(resp, "Content-Type", cntTyp);
+    addHeader2Response(resp, "Content-Length", TO_BASE(payload_len, 10));
+    setPayload(resp, payload, payload_len);
+    log_trace("Wrote %ju byte to client %d", writeResponse(resp), cfd);
+    freeResponse(resp);
     free(cntTyp);
-    free(header_payload);
   } else {
     log_error("Path is not a virtual path(%s)", path);
     return NIL;

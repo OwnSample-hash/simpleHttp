@@ -1,11 +1,11 @@
 #include "parser.h"
-#include "bytes.h"
 #include "itoa.h"
 #include "linkList.h"
 #include "log/log.h"
 #include "lua/setup.h"
 #include "lua/virtual_path.h"
 #include "mime_guess.h"
+#include "write_response.h"
 #include <stdio.h>
 #include <string.h>
 #include <sys/stat.h>
@@ -66,10 +66,24 @@ parseGet_t parseReq(char *request, size_t srequest, int client_fd,
   snprintf(payload, payload_len + 2, "%s %s", wordsGet->data,
            wordsGet->next->data);
   int ret = parseGet(payload, strlen(payload), client_fd, root, keep_alive);
-  if (ret != OK_GET) {
+  if (ret == NOT_FOUND) {
     log_trace("praseGet(...) != OK_GET is true, ret: %d", ret);
     log_info("Treating path (%s) as a virtual path", wordsGet->next->data);
-    ret = virtual_path_resolv(wordsGet->next->data, client_fd);
+    ret = virtual_path_resolv(wordsGet->next->data, client_fd, wordsGet->data,
+                              keep_alive);
+  }
+  switch (ret) {
+  case NO_STAT:
+    log_error("Failed to stat file");
+    erep(client_fd);
+    break;
+  case WRONG_PROTOCOL:
+    log_error("Wrong protocol");
+    erep(client_fd);
+    break;
+  case ERR:
+    log_error("Error");
+    break;
   }
   freeList(lines);
   freeList(wordsGet);
@@ -97,82 +111,58 @@ parseGet_t parseGet(char *payload, size_t spayload, int client_fd,
   struct stat src_stat = {0};
   if (stat(fn, &src_stat)) {
     perror("stat");
+    free(fn);
     return NO_STAT;
   }
+
+  response_t *resp = newRespones(client_fd, lookupStatus(200), keep_alive);
+  if (resp == NULL) {
+    log_error("Failed to create response");
+    fclose(fp);
+    free(fn);
+    return ERR;
+  }
+
   char *cntTyp = ContentType(M_FILE, fn);
-  int cntLen = strlen(cntTyp);
-  char *str_size = TO_BASE(src_stat.st_size, 10);
-  int len_strelen = strlen(str_size);
-  // first param const int is 21 working should be 37
-  char *header;
-  int header_len = genHeader(&header, keep_alive);
-  char *header_payload =
-      calloc(37 + len_strelen + header_len + cntLen, sizeof(char));
+  addHeader2Response(resp, "Content-Type", cntTyp);
+  free(cntTyp);
+  addHeader2Response(resp, "Content-Length", TO_BASE(src_stat.st_size, 10));
 
-  snprintf(header_payload, 37 + len_strelen + header_len + cntLen,
-           "%s%s %jd\r\n%s", header, "Content-Length:", src_stat.st_size,
-           cntTyp);
-
-  write(client_fd, header_payload, strlen(header_payload));
-  write(client_fd, "\r\n", 2);
-  src_stat = (struct stat){0};
-
-  char *buf = calloc(2 * MB_10, sizeof(char));
+  char *buf = calloc(src_stat.st_size, sizeof(char));
   if (buf == NULL) {
     perror("praseGet,calloc");
     log_fatal("prasGet,calloc");
     fclose(fp);
     free(fn);
-    free(header_payload);
-    free(cntTyp);
-    free(header);
     return CALLOC;
   }
-  size_t bytes_read = 0;
-  while ((bytes_read = fread(buf, sizeof(char), 2 * MB_10, fp)) > 0) {
-    write(client_fd, buf, bytes_read);
+  off_t bytes_read = fread(buf, sizeof(char), src_stat.st_size, fp);
+  /*while ((bytes_read = ) > 0) {*/
+  /*}*/
+  if (bytes_read != src_stat.st_size) {
+    log_error("Failed to read file");
+    free(buf);
+    fclose(fp);
+    free(fn);
+    return ERR;
   }
+  setPayload(resp, buf, bytes_read);
+  log_trace("Wrote %ju byte to client %d", writeResponse(resp), client_fd);
 
+  src_stat = (struct stat){0};
   if (feof(fp))
     log_trace("eof hit on %s", fn);
   fclose(fp);
   free(buf);
   free(fn);
-  free(header_payload);
-  free(cntTyp);
-  free(header);
+  /*free(header_payload);*/
+  /*free(header);*/
   return OK_GET;
 }
 
 void strncatskip(char *dst, const char *src, size_t count, size_t offset) {
   size_t i, j;
-  for (i = offset, j = strlen(dst); i < count; i++, j++) {
+  for (i = offset, j = strlen(dst); i < count; i++, j++)
     dst[j] = src[i];
-  }
-  dst[j + 1] = '\0';
-}
-
-int genHeader(char **dst, const keep_alive_t *keep_alive) {
-  if (keep_alive->keep_alive) {
-    int len = strlen(HEADER_KEEP) + strlen(TO_BASE(keep_alive->timeout, 10)) +
-              strlen(TO_BASE(keep_alive->max, 10));
-    log_trace("Got %d len for keep alive header", len);
-    *dst = calloc(len, sizeof(char));
-    if (!dst) {
-      log_fatal("Failed to calloc mem for header");
-      perror("calloc");
-      return -1;
-    }
-    return snprintf(*dst, len, HEADER_KEEP, keep_alive->timeout,
-                    keep_alive->max);
-  } else {
-    *dst = calloc(strlen(HEADER_CLOSE), sizeof(char));
-    if (!dst) {
-      log_fatal("Failed to calloc mem for header");
-      perror("calloc");
-      return -1;
-    }
-    strncpy(*dst, HEADER_CLOSE, strlen(HEADER_CLOSE));
-    return strlen(HEADER_CLOSE);
-  }
+  dst[j] = '\0';
 }

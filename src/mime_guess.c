@@ -1,5 +1,6 @@
 #include "mime_guess.h"
 #include "log/log.h"
+#include <string.h>
 
 char *ContentType(m_type type, const char *payload) {
   const char *mime;
@@ -24,12 +25,12 @@ char *ContentType(m_type type, const char *payload) {
     return NULL;
     break;
   }
-  int len = 17 + strlen(mime);
+  int len = strlen(mime);
   char *ret = calloc(len, sizeof(char));
   if (ret == NULL) {
     perror("calloc");
   }
-  snprintf(ret, len, "Content-Type: %s\r\n", mime);
+  snprintf(ret, len, "%s", mime);
   log_trace("Mime type: %s", mime);
   magic_close(magic);
   return ret;

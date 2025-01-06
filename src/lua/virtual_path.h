@@ -10,4 +10,7 @@ typedef enum {
 } lookup_status;
 
 lookup_status virtual_path_resolv(const char *path, const int cfd);
+lookup_status virtual_path_resolv(const char *path, const int cfd,
+                                  const char *method,
+                                  const keep_alive_t *keep_alive);
 #endif
