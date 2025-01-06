@@ -25,12 +25,11 @@ restore:
 LUA_VER = lua-5.4.6
 install_lua:
 	@printf "  %-9s %s\n" "RM" "${LUA_VER} ${LUA_VER}.tar.gz"
-	@rm ${LUA_VER} ${LUA_VER}.tar.gz -f
+	@rm ${LUA_VER} ${LUA_VER}.tar.gz -fr
 	@printf "  %-9s %s\n" "WGET" "https://www.lua.org/ftp/${LUA_VER}.tar.gz"
-	@wget https://www.lua.org/ftp/${LUA_VER}.tar.gz
 	@printf "  %-9s %s\n" "TAR" "${LUA_VER}.tar.gz"
-	@tar xf ${LUA_VER}.tar.gz
-	$(MAKE) -C ${LUA_VER}/ -j
+	@curl https://www.lua.org/ftp/${LUA_VER}.tar.gz | tar xvz
+	$(MAKE) -C ${LUA_VER}/ -j CFLAGS+="-ggdb"
 	${eval CFLAGS += -I${LUA_VER}/src/}
 	${eval LDFLAGS += -L${LUA_VER}/src/}
 
