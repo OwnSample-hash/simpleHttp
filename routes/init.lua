@@ -18,4 +18,4 @@ Add_Route("/_routes", "GET", "json", function()
 	return Dump_table(_Funcs, 0)
 end)
 
-Log(LOG_INFO, "Added routes")
+Info("Added routes")

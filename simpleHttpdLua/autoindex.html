@@ -2,8 +2,7 @@
 <html lang="en">
 	<head>
 	    <lua_script>
-		html('title', 'title')
-		print('added title')
+				title('title')
 	    </lua_script>
 	    <meta charset="UTF-8">
 	    <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -12,7 +11,7 @@
 	    <ul>
 	    <lua_script>
 	      for k, v in pairs(files) do
-	        html('li', tostring(v))
+	       p(li(tostring(v.path)))
 	      end
 	    </lua_script>
 	    </ul>

@@ -8,34 +8,13 @@ if scan_ == nil or log_log == nil or _Funcs == nil or write_ == nil then
 	return nil
 end
 
-function Die(reason)
-	local caller = debug.getinfo(2)
-	if not caller then
-		print("NO CALLER")
-	end
-	if reason then
-		reason = "With the following reason: " .. reason
-	else
-		reason = ""
-	end
-	log_log(LOG_FATAL, caller.short_src, caller.currentline, "Server died! " .. reason)
-	os.exit(1)
-end
-
 ---Writes data to a file descriptor and returns the number of bytes written
 ---@param fd number
 ---@param data string
 ---@param data_len number
 ---@return number
 function Write(fd, data, data_len)
-	local caller = debug.getinfo(2)
-	if not caller then
-		print("NO CALLER")
-	end
-	log_log(LOG_TRACE, caller.short_src, caller.currentline, "[LUA->C] CALLING INTO C FUNC")
-	local ret = write_(fd, data, data_len)
-	log_log(LOG_TRACE, caller.short_src, caller.currentline, "[C->LUA] RETURING FROM C")
-	return ret
+	return write_(fd, data, data_len)
 end
 
 ---Route registration wrapper
@@ -46,19 +25,24 @@ end
 ---@return nil
 function Add_Route(path, meth, cntp, handler)
 	if path == "/" then
-		Log(LOG_WARN, "Adding route to path '/' will not be used TODO:fix")
+		Warn("Adding route to path '/' will not be used TODO: fix")
 		return
 	end
 	if type(handler) == "string" then
 		_Funcs[path] = handler
 	else
-		_Funcs[path] = {
-			["fn"] = handler,
-			["meth"] = meth or "GET",
-			["cntp"] = cntp or "auto",
-		}
+		if _Funcs[path] == nil then
+			_Funcs[path] = {
+				["fn"] = handler,
+				["meth"] = { meth } or { "GET" },
+				["cntp"] = cntp or "auto",
+			}
+		else
+			table.insert(_Funcs[path]["meth"], meth)
+			Info("Added meth (%s) to path (%s)", meth, path)
+		end
 	end
-	Log(LOG_INFO, "Added path (%s) with meth (%s) with ~fn~ to the registry", path, meth)
+	Info("Added path (%s) with meth (%s) with ~fn~ to the registry", path, meth)
 end
 
 LOG_TRACE = 0
@@ -74,14 +58,73 @@ LOG_FATAL = 5
 ---@param ... any
 ---@return nil
 function Log(lvl, fmt, ...)
-	local caller = debug.getinfo(2)
+	local caller = debug.getinfo(3)
 	if not caller then
 		print("NO CALLER")
+		print(debug.traceback())
 	end
 	log_log(lvl, caller.short_src, caller.currentline, string.format(fmt, ...))
 end
 
-Log(LOG_INFO, "Running additonal lua files")
+--- Log functions
+---@param fmt string
+---@vararg any
+function Trace(fmt, ...)
+	Log(LOG_TRACE, fmt, ...)
+end
+
+--- Log functions
+---@param fmt string
+---@vararg any
+function Debug(fmt, ...)
+	Log(LOG_DEBUG, fmt, ...)
+end
+
+--- Log functions
+---@param fmt string
+---@vararg any
+function Info(fmt, ...)
+	Log(LOG_INFO, fmt, ...)
+end
+
+--- Log functions
+---@param fmt string
+---@vararg any
+function Warn(fmt, ...)
+	Log(LOG_WARN, fmt, ...)
+end
+
+--- Log functions
+---@param fmt string
+---@vararg any
+function Error(fmt, ...)
+	Log(LOG_ERROR, fmt, ...)
+end
+
+--- Log functions
+---@param fmt string
+---@vararg any
+function Fatal(fmt, ...)
+	Log(LOG_FATAL, fmt, ...)
+end
+
+--- Fatal that will exit the server
+---@param reason string
+function Die(reason)
+	local caller = debug.getinfo(2)
+	if not caller then
+		print("NO CALLER")
+	end
+	if reason then
+		reason = "With the following reason: " .. reason
+	else
+		reason = ""
+	end
+	log_log(LOG_FATAL, caller.short_src, caller.currentline, "Server died! " .. reason)
+	os.exit(1)
+end
+
+Info("Running additonal lua files")
 dofile("simpleHttpdLua/special_ret.lua")
 dofile("simpleHttpdLua/template.lua")
 dofile("simpleHttpdLua/autoindex.lua")
@@ -99,7 +142,7 @@ function Dump_table(base_tbl, depth)
 	if depth == MAX_TBL_DEPTH then
 		return "MAX_TBL_DEPTH REACEHED"
 	end
-	Log(LOG_WARN, "dumping table depth: %d", depth)
+	Warn("dumping table depth: %d", depth)
 	local ret_str = ""
 	for k, v in pairs(base_tbl) do
 		if type(v) == "table" then
@@ -126,17 +169,14 @@ function Scan(path, flag)
 	if not caller then
 		print("NO CALLER")
 	end
-	log_log(LOG_TRACE, caller.short_src, caller.currentline, "[LUA->C] CALLING INTO C FUNC " .. path)
-	local ret = scan_(path, flag)
-	log_log(LOG_TRACE, caller.short_src, caller.currentline, "[C->LUA] RETURING FROM C")
-	return ret
+	return scan_(path, flag)
 end
 
 Log(LOG_INFO, "Adding routes automaticlly")
 local routes_scan_raw = Scan(ROUTES_ROOT, FTW.PHYS)
-Log(LOG_TRACE, "Returned from scan")
+Trace("Returned from scan")
 local routes_dir = ROUTES_ROOT or "routes/" -- TODO: use what comes from the config if i made it
-Log(LOG_TRACE, "routes_dir %s", ROUTES_ROOT)
+Trace("routes_dir %s", ROUTES_ROOT)
 local routes_scan = {}
 
 local function table_printer(x)
@@ -149,7 +189,7 @@ local function table_printer(x)
 	end
 end
 
-Log(LOG_DEBUG, Dump_table(routes_scan_raw))
+Debug(Dump_table(routes_scan_raw))
 for _, v in pairs(routes_scan_raw) do
 	table.insert(routes_scan, v["path"])
 end
@@ -157,12 +197,12 @@ end
 if routes_scan then
 	if type(routes_scan) == "table" then
 		for k, v in pairs(routes_scan) do
-			Log(LOG_TRACE, k .. ":" .. tostring(v))
+			Trace(k .. ":" .. tostring(v))
 			if v == (routes_dir .. "init.lua") then
 				require(routes_dir)
-				Log(LOG_TRACE, "%sinit.lua added", routes_dir)
+				Trace("%sinit.lua added", routes_dir)
 			else
-				Log(LOG_TRACE, "%s is treated as dofile add", v)
+				Trace("%s is treated as dofile add", v)
 				local vpath = v:gsub(routes_dir, "/")
 				vpath = vpath:gsub("%.lua", "")
 				local tmp = {}
@@ -171,7 +211,7 @@ if routes_scan then
 				end
 				local meth = tmp[#tmp]
 				local path = "/"
-				Log(LOG_TRACE, "meth: %s", meth)
+				Trace("meth: %s", meth)
 				for _, v2 in pairs(tmp) do
 					if v2 == meth then
 						path = path:sub(1, -2)
@@ -179,23 +219,23 @@ if routes_scan then
 					end
 					path = path .. v2 .. "/"
 				end
-				Log(LOG_TRACE, "vpath:%s, path:%s, meth:%s", vpath, path, meth)
+				Trace("vpath:%s, path:%s, meth:%s", vpath, path, meth)
 				local handler = dofile(v)
-				Log(LOG_TRACE, "handler %s", handler)
+				Trace("handler %s", handler)
 				if handler == nil then
-					Log(LOG_WARN, "Not adding nil path: %s, vpath: %s, meth: %s", path, vpath, meth)
-					Log(LOG_ERROR, "handler: %s", handler)
+					Warn("Not adding nil path: %s, vpath: %s, meth: %s", path, vpath, meth)
+					Error("handler: %s", handler)
 				else
 					Add_Route(path, meth:upper(), "auto", handler)
-					Log(LOG_INFO, "Added path: %s, meth: %s", path, meth)
+					Info("Added path: %s, meth: %s", path, meth)
 				end
 			end
 		end
 	else
-		Log(LOG_WARN, routes_scan)
+		Warn(routes_scan)
 	end
 else
-	Log(LOG_WARN, "routes_scan is empty")
+	Warn("routes_scan is empty")
 end
 
 CreateAutoIndex("autoindex", "/autoindex")
