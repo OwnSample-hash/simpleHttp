@@ -19,7 +19,7 @@ int lua_create_socket(lua_State *L) {
   int listen = lua_tonumber(L, 4);
   int proto = lua_tonumber(L, 5);
 
-  new_sock *ns = calloc(1, sizeof(new_sock));
+  new_sock_t *ns = calloc(1, sizeof(new_sock_t));
   if (!ns) {
     perror("calloc,lua_create_socket");
     log_fatal("Failed to callocate memory for struct");
@@ -95,39 +95,7 @@ int lua_set_keep_alive(lua_State *L) {
   return 0;
 }
 
-int lua_add_http_method(lua_State *L) {
-  luaL_checkstring(L, 1);
-  lua_getglobal(L, "__DRV");
-  driver_t *drv = lua_touserdata(L, -1);
-  const char *tmp = lua_tostring(L, 1);
-  int i = 0;
-  while (drv->methods[i] != NULL) {
-    i++;
-  }
-  drv->methods[i] = reallocarray(drv->methods, i + 1, sizeof(char *));
-  if (!drv->methods[i]) {
-    perror("reallocarray,lua_add_http_method");
-    log_fatal("Failed to realloc memory for methods");
-    lua_pushliteral(L, "Failed to realloc memory for methods");
-    lua_error(L);
-  }
-  drv->methods[i] = strdup(tmp);
-  drv->methods[i + 1] = NULL;
-  return 0;
-}
-
 void init(const char *conf_file, driver_t *drv) {
-  drv->methods = calloc(5, sizeof(char *));
-  if (!drv->methods) {
-    perror("calloc,init");
-    log_fatal("Failed to calloc memory for methods");
-    exit(1);
-  }
-  drv->methods[0] = strdup("GET");
-  drv->methods[1] = strdup("POST");
-  drv->methods[2] = strdup("PUT");
-  drv->methods[3] = strdup("DELETE");
-  drv->methods[4] = NULL;
   lua_State *L_conf = luaL_newstate();
   luaL_openlibs(L_conf);
   lua_pushlightuserdata(L_conf, drv);

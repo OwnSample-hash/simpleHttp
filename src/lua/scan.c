@@ -1,4 +1,5 @@
 #define _XOPEN_SOURCE 500
+#include "../log/log.h"
 #include "lua_.h"
 #include <dirent.h>
 #include <ftw.h>
@@ -11,6 +12,7 @@ typedef struct FTW FTW_t;
 static int counter = 0;
 static lua_State *l;
 static int table_index = 0;
+
 int _filter(const char *path, const stat_t *sb, int tflag, FTW_t *tfwbuf) {
   if (tflag == FTW_F) {
     log_trace("Path: %s with size %d", path, sb->st_size);

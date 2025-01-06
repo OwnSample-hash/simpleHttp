@@ -1,4 +1,5 @@
 #include "lua_.h"
+#include "../log/log.h"
 #include <lauxlib.h>
 #include <lua.h>
 #include <lualib.h>
