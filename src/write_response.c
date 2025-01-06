@@ -185,12 +185,13 @@ void freeResponse(response_t *resp) {
 }
 
 size_t setPayload(response_t *res, const char *payload, size_t len) {
+  log_trace("Setting payload of len %d", len);
   res->payload = calloc(len, sizeof(char));
   if (!res->payload) {
     log_fatal("Failed to calloc mem for payload");
     return -1;
   }
-  strncpy(res->payload, payload, len);
+  memcpy(res->payload, payload, len);
   res->len = len;
   return len;
 }
