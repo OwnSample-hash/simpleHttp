@@ -1,10 +1,10 @@
 #include "threadJob.h"
 #include "bytes.h"
 #include "log/log.h"
+#include "lua/lua_.h"
 #include "lua/setup.h"
 #include "lua/virtual_path.h"
 #include "parser.h"
-#include "socket.h"
 #include <netinet/in.h>
 #include <poll.h>
 #include <signal.h>
@@ -23,6 +23,7 @@ void thread_quit(int code, void *arg) {
     log_info("Thread type one shot");
   }
   log_info("Quit with code %d", code);
+  lua_close(gL);
 }
 
 void threadJob(int client_sockfd, const char *server,
@@ -110,71 +111,4 @@ void threadJob(int client_sockfd, const char *server,
   }
   log_info("Connection closed on fd:%d exiting", client_sockfd);
   exit(0);
-}
-
-int serve(const driver_t *drv) {
-  struct pollfd fds[open_sockets_len];
-  for (int i = 0; i < open_sockets_len; i++) {
-    fds[i].fd = open_sockets[i].fd;
-    fds[i].events = POLL_PRI | POLLRDBAND;
-  }
-  while (1) {
-    int ret = poll(fds, open_sockets_len, -1);
-    if (ret > 0) {
-      for (int i = 0; i < open_sockets_len; i++) {
-        if (fds[i].revents & POLL_HUP) {
-          log_error("Socket %d has hungup", fds[i].fd);
-          exit(1);
-        }
-        if (fds[i].revents & POLL_PRI || fds[i].revents & POLLRDBAND) {
-          int port = 0;
-          char ipBuffer[INET6_ADDRSTRLEN] = {0};
-          int domain = 0;
-          for (int j = 0; j < open_sockets_len; j++) {
-            domain = open_sockets[j].fd == fds[i].fd
-                         ? open_sockets[j].conf->domain
-                         : -1;
-            if (domain > 0)
-              break;
-          }
-          log_trace("!!!sock->domian=%d", domain);
-          socklen_t client_len = domtosize(domain);
-          void *client_address = calloc(1, client_len);
-          if (!client_address) {
-            perror("calloc,accept_logic");
-            log_fatal("Mem error");
-            exit(1);
-          }
-          int client_sockfd = accept(fds[i].fd, client_address, &client_len);
-          getAddressAndPort(client_address, ipBuffer, sizeof(ipBuffer), &port);
-          log_info("Client %s:%d via fd: %d", ipBuffer, port, client_sockfd);
-          free(client_address);
-          pid_t pid = fork();
-          if (pid == 0) {
-            for (int i = 0; i < open_sockets_len; i++) {
-              if (close(open_sockets[i].fd)) {
-                log_warn("Cloudn't close listening socket %d it's closed tho",
-                         open_sockets[i].fd);
-                perror("close,handler,server_sock");
-              }
-            }
-            threadJob(client_sockfd, drv->server_root, &(drv->keep_alive));
-          } else if (pid == -1) {
-            perror("handler,fork");
-          } else {
-            log_debug("serve_pid:%d", pid);
-            if (close(client_sockfd)) {
-              log_error("Failed to close %d", client_sockfd);
-              perror("close,parent");
-            }
-          }
-          wait(NULL);
-        }
-      }
-    } else {
-      log_fatal("Poll failed");
-      perror("poll");
-    }
-  }
-  return 0;
 }
