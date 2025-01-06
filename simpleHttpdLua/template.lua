@@ -13,7 +13,7 @@ function Template.html.html_tag(tbl, key)
   Debug("Creating tag %s", key)
   return function(str)
     Template.html.current_ret = Template.html.current_ret ..
-        "<" .. key .. " " .. ">" .. tostring(str) .. "</" .. key .. ">\n"
+        "<" .. key .. " " .. ">\n" .. tostring(str) .. "\n</" .. key .. ">\n"
   end
 end
 
@@ -57,7 +57,7 @@ function Template.DoFileCoro(path, args)
   local function_code = "%s"
   local dump_code = false
   for line in file:lines() do
-    if line:find("^%s*</lua_script>") then
+    if line:find("^%s*</lua>") then
       dump_code = false
       function_code = function_code:format("\n")
       ProcessFunction(function_code, args)
@@ -69,7 +69,7 @@ function Template.DoFileCoro(path, args)
     if dump_code then
       function_code = function_code:format(line) .. "%s"
     end
-    if line:find("^%s*<lua_script>") then
+    if line:find("^%s*<lua>") then
       dump_code = true
     end
     if not dump_code then
