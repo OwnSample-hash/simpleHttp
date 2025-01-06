@@ -5,7 +5,10 @@
 #include <mqueue.h>
 #include <stdbool.h>
 #include <sys/wait.h>
-
+/**
+ * @enum quit_status_e
+ * @brief The status of the thread
+ */
 typedef enum {
   THREAD_FAIL = -1,
   THREAD_OK,
@@ -19,7 +22,13 @@ typedef struct {
   keep_alive_t *keep_alive;
 } quit_status_t;
 
-int serve(const driver_t *drv);
+/**
+ * @brief The main function for the thread
+ *
+ * @param client_sockfd The client socket file descriptor
+ * @param server The main server root
+ * @param keep_alive Keep alive parameters
+ */
 void threadJob(int client_sockfd, const char *server,
                const keep_alive_t *keep_alive);
 
