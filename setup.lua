@@ -1,7 +1,7 @@
-set_log_level(LOG_FATAL)
+-- set_log_level(LOG_FATAL)
 
-create_socket("127.0.0.1", 8000, AF_INET, 5, HTTP)
-create_socket("::1", 8000, AF_INET6, 5, HTTP)
+create_socket("127.0.0.1", 8080, AF_INET, 5, HTTP)
+create_socket("::1", 8080, AF_INET6, 5, HTTP)
 
 set_server_root("server")
 set_routes_root("routes")
