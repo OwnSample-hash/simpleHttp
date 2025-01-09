@@ -51,8 +51,8 @@ int lua_set_server_root(lua_State *L) {
   luaL_checktype(L, -1, LUA_TLIGHTUSERDATA);
   driver_t *drv = lua_touserdata(L, -1);
   const char *tmp = lua_tostring(L, 1);
-  drv->server_root = calloc(strlen(tmp), sizeof(char));
-  strncpy((char *)drv->server_root, tmp, strlen(tmp));
+  drv->server_root = calloc(strlen(tmp) + 1, sizeof(char));
+  snprintf(drv->server_root, strlen(tmp) + 1, "%s", tmp);
   return 0;
 }
 
@@ -62,8 +62,8 @@ int lua_set_routes_root(lua_State *L) {
   luaL_checktype(L, -1, LUA_TLIGHTUSERDATA);
   driver_t *drv = lua_touserdata(L, -1);
   const char *tmp = lua_tostring(L, 1);
-  drv->routes_root = calloc(strlen(tmp), sizeof(char));
-  strncpy((char *)drv->routes_root, tmp, strlen(tmp));
+  drv->routes_root = calloc(strlen(tmp) + 1, sizeof(char));
+  snprintf(drv->routes_root, strlen(tmp) + 1, "%s", tmp);
   return 0;
 }
 
