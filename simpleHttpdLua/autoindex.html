@@ -1,20 +1,29 @@
 <!DOCTYPE html>
 <html lang="en">
-	<head>
-	    <lua>
-	      title('title')
-	    </lua>
-	    <meta charset="UTF-8">
-	    <meta name="viewport" content="width=device-width, initial-scale=1">
-	</head>
-	<body>
-	    <ul>
-	    <lua>
-                for k, v in pairs(files) do
-                 p(li(tostring(v.path)))
-                end
-	    </lua>
-	    </ul>
-	</body>
+<head>
+    <lua>
+        title('Index')
+    </lua>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+<body>
+    <h1>Index</h1>
+    <h2>Files</h2>
+    <hr>
+    <pre>
+        <lua>
+            for k, v in pairs(files) do 
+                div(k .. ':' .. json(v))
+                div(v.path)
+            end
+                div(h1(#files, {class="count"}))
+        </lua>
+    </pre>
+    <hr>
+                div(v.mtime)
+                div(v.size)
+        div(os.date('%Y %m %d %H:%M:%S', tonumber(v.mtime)))
+</body>
 </html>
 <!--Vim: set expandtab tabstop=2 shiftwidth=2:-->
