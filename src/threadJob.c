@@ -1,44 +1,37 @@
 #include "threadJob.h"
 #include "bytes.h"
 #include "log/log.h"
-#include "lua/lua_.h"
 #include "lua/setup.h"
 #include "lua/virtual_path.h"
 #include "parser.h"
+#include "parserNev.h"
+#include "quit_handler.h"
 #include <netinet/in.h>
-#include <poll.h>
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/poll.h>
 #include <unistd.h>
 
-void thread_quit(int code, void *arg) {
-  quit_status_t *quit_status = arg;
-  log_info("Done serving client: %d", quit_status->cfd);
-  if (quit_status->keep_alive->keep_alive) {
-    log_info("Thread could server %d request with to %d",
-             quit_status->keep_alive->max, quit_status->keep_alive->timeout);
-  } else {
-    log_info("Thread type one shot");
-  }
-  log_info("Quit with code %d", code);
-  lua_close(gL);
-}
+void thread_quit() { ctrl_c_h(-1); }
 
 void threadJob(int client_sockfd, const char *server,
                const keep_alive_t *keep_alive) {
   signal(SIGINT, NULL);
-  quit_status_t quit_status = {.cfd = client_sockfd};
-  if (on_exit(thread_quit, &quit_status) != 0) {
+  if (atexit(thread_quit)) {
     perror("atexit");
     log_fatal("Faild to register at exit handler");
     exit(THREAD_FAIL);
   }
-  char buf[KB_1 * 8];
+  char *buf = calloc(KB_1 * 8, sizeof(char));
+  if (buf == NULL) {
+    log_fatal("Failed to allocate buffer");
+    exit(THREAD_FAIL);
+  }
+  save_ptr(buf);
   keep_alive_t local_keep_alive = {};
   memcpy(&local_keep_alive, keep_alive, sizeof(keep_alive_t));
-  quit_status.keep_alive = &local_keep_alive;
   log_info("Serving client fd:%d", client_sockfd);
   if (local_keep_alive.keep_alive)
     log_info("All connection will have a %d sec time out with %d max request",
@@ -92,18 +85,15 @@ void threadJob(int client_sockfd, const char *server,
       log_info("END OF REQUEST");
     }
   } else {
-    int nbytes_read = read(client_sockfd, buf, BUFSIZ);
-    switch (parseReq(buf, nbytes_read, client_sockfd, server, keep_alive)) {
-    case NIL:
-      log_debug("Nil resp");
-      erep(client_sockfd);
-      break;
-    case HANDLED:
-      log_debug("Client handeld other ways");
-      break;
-    default:
-      break;
+    request_t *req = init_request(client_sockfd);
+    if (req == NULL) {
+      log_fatal("Failed to allocate request");
+      free(buf);
+      exit(THREAD_FAIL);
     }
+    parse_request(req);
+    process_request(req, server, &local_keep_alive);
+    free_request(req);
   }
   if (close(client_sockfd)) {
     perror("close");

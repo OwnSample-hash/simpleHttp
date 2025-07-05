@@ -3,6 +3,7 @@
 
 #include "bytes.h"
 #include "lua/setup.h"
+#include <stdbool.h>
 #include <stdio.h>
 #include <unistd.h>
 
@@ -39,17 +40,23 @@ static const char HEADER_KEEP[] =
  *
  */
 typedef struct pair {
+  /**
+   * @brief The integer value
+   */
   const int p1;
+  /**
+   * @brief The string value
+   */
   const char *p2;
-} pair_t;
+} pair_is_t;
 
 /**
- * @class map
+ * @struct map
  * @brief A map of a pair of integer and string and a string
  *
  */
 typedef struct map {
-  const pair_t key;
+  const pair_is_t key;
   const char *value;
 } map_t;
 
@@ -62,6 +69,16 @@ static const map_t STATUS_MAP[] = {
     {{204, "204"}, "No Content"},
     {{400, "400"}, "Bad Request"},
     {{404, "404"}, "Not Found"},
+    {{405, "405"}, "Method Not Allowed"},
+    {{408, "408"}, "Request Timeout"},
+    {{409, "409"}, "Conflict"},
+    {{411, "411"}, "Length Required"},
+    {{413, "413"}, "Payload Too Large"},
+    {{414, "414"}, "URI Too Long"},
+    {{415, "415"}, "Unsupported Media Type"},
+    {{416, "416"}, "Range Not Satisfiable"},
+    {{417, "417"}, "Expectation Failed"},
+    {{429, "429"}, "Too Many Requests"},
     {{500, "500"}, "Internal Server Error"},
     {{501, "501"}, "Not Implemented"},
     {{505, "505"}, "HTTP Version Not Supported"},
@@ -69,9 +86,15 @@ static const map_t STATUS_MAP[] = {
 };
 
 /**
- * @class header
+ * @typedef header_t
+ * @struct header
  * @brief A header struct
  *
+ * @var header::name
+ * The header name
+ *
+ * @var header::value
+ * The header value
  */
 typedef struct header {
   const char *name;
@@ -80,7 +103,7 @@ typedef struct header {
 
 /**
  * @typedef response
- * @brief THe response opaque struct
+ * @brief The response opaque struct
  *
  */
 typedef struct response response_t;
@@ -91,11 +114,7 @@ typedef struct response response_t;
  * @param res The response struct
  * @return int The number of bytes written
  */
-size_t writeResponse(response_t *res);
-
-[[deprecated("I have no idea what it does")]]
-size_t genHeader2(const header_t *header, const map_t *status,
-                  const keep_alive_t *keep_alive, char *dst);
+size_t write_response(response_t *res);
 
 /**
  * @brief Creates a new response
@@ -105,8 +124,8 @@ size_t genHeader2(const header_t *header, const map_t *status,
  * @param keep_alive The keep alive struct
  * @return
  */
-[[nodiscard("You have to free it later")]] response_t *
-newRespones(int cfd, const map_t *status, const keep_alive_t *keep_alive);
+response_t *new_response(int cfd, const map_t *status,
+                         const keep_alive_t *keep_alive);
 
 /**
  * @brief Adds a header to the response
@@ -115,7 +134,7 @@ newRespones(int cfd, const map_t *status, const keep_alive_t *keep_alive);
  * @param name The header name
  * @param value The header value
  */
-void addHeader2Response(response_t *res, const char *name, const char *value);
+void add_header(response_t *res, const char *name, const char *value);
 
 /*header_t *expandHeader(header_t *header, size_t size);*/
 
@@ -124,14 +143,14 @@ void addHeader2Response(response_t *res, const char *name, const char *value);
  *
  * @param resp The response struct
  */
-void trimResponse(response_t *resp);
+void trim_response(response_t *resp);
 
 /**
  * @brief Frees the response struct
  *
  * @param resp The response struct
  */
-void freeResponse(response_t *resp);
+void free_response(response_t *resp);
 
 /**
  * @brief Generate the base header
@@ -141,7 +160,7 @@ void freeResponse(response_t *resp);
  * @param keep_alive The keep alive struct
  * @return int The length of the header
  */
-int genHeader(char **dst, const map_t *status, const keep_alive_t *keep_alive);
+int gen_header(char **dst, const map_t *status, const keep_alive_t *keep_alive);
 
 /**
  * @brief Set the payload
@@ -151,7 +170,43 @@ int genHeader(char **dst, const map_t *status, const keep_alive_t *keep_alive);
  * @param len The length of the payload
  * @return size_t The length of the payload
  */
-size_t setPayload(response_t *res, const char *payload, size_t len);
+size_t set_payload(response_t *res, const char *payload, size_t len);
+
+/**
+ * @brief Adds to the payload
+ *
+ * @param res The response struct
+ * @param payload The payload to add
+ * @param len The length of the payload to add
+ * @return size_t The length of the payload after adding
+ */
+size_t add_to_Payload(response_t *res, const char *payload, size_t len);
+
+/**
+ * @brief Sets the status code of the response
+ *
+ * @param res The response struct
+ * @param code The status code to set
+ */
+void set_status(response_t *res, int code);
+
+/**
+ * @brief Adds a file to the payload
+ * Also sets the content length and type based on the file's MIME type
+ *
+ * @param res The response struct
+ * @param file The file to add to the payload
+ * @return size_t The length of the payload after adding the file
+ */
+size_t add_file_to_payload(response_t *res, const char *file, const char *mode);
+
+/**
+ * @brief Checks if the response is valid
+ *
+ * @param res The response struct
+ * @return bool True if the response is valid, false otherwise
+ */
+bool is_valid(const response_t *res);
 
 /**
  * @brief Lookup the status code
@@ -159,5 +214,5 @@ size_t setPayload(response_t *res, const char *payload, size_t len);
  * @param code The status code
  * @return const map_t* The status code
  */
-const map_t *lookupStatus(int code);
+const map_t *lookup_status(int code);
 #endif // __WRITE_RESPONSE_H__

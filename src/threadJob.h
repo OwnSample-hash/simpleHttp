@@ -2,9 +2,9 @@
 #define __THREADJOB_HTTP__
 
 #include "lua/setup.h"
-#include <mqueue.h>
 #include <stdbool.h>
 #include <sys/wait.h>
+
 /**
  * @enum quit_status_e
  * @brief The status of the thread
@@ -16,9 +16,12 @@ typedef enum {
   THREAD_TIMEOUT,
 } quit_status_e;
 
+/**
+ * @typedef quit_status_t
+ * Unsed up for removal
+ */
 typedef struct {
   int cfd;
-  mqd_t mq;
   keep_alive_t *keep_alive;
 } quit_status_t;
 
