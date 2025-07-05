@@ -27,6 +27,14 @@ function write_(fd, data, data_len) end
 --- The File descriptor for the connected socket only avalibe in a request ctx
 __CFD = 0
 
+---@type (string)
+---The request method only avalibe in a request ctx
+__METHOD = ""
+
+---@type (string)
+---The request path only avalibe in a request ctx
+__PATH = ""
+
 ---@type(string)
 ---Server root varaible
 SERVER_ROOT = ""
