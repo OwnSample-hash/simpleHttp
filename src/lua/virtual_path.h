@@ -8,11 +8,12 @@
  * @brief Status of the lookup
  */
 typedef enum {
+  NIL = -1,
   OK_LOOKUP = 0,
-  NIL,
   HANDLED,
+  STATIC,
   WRONG_VERB,
-} lookup_status;
+} vlookup_status;
 
 /**
  * @brief Resolve a virtual path
@@ -23,7 +24,8 @@ typedef enum {
  * @param keep_alive Keep alive settings
  * @return lookup_status Status of the lookup
  */
-lookup_status virtual_path_resolv(const char *path, const int cfd,
-                                  const char *method,
-                                  const keep_alive_t *keep_alive);
+vlookup_status virtual_path_resolv(const char *path, const int cfd,
+                                   const char *method,
+                                   const keep_alive_t *keep_alive);
+
 #endif

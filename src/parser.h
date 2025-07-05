@@ -28,7 +28,7 @@ parseGet_t parseReq(char *request, size_t srequest, int client_fd,
 parseGet_t parseGet(char *payload, size_t spayload, int client_fd,
                     const char *root, const keep_alive_t *keep_alive);
 
-splits_t splitOn_c(char *str, const char *delimiter);
+/*splits_t splitOn_c(char *str, const char *delimiter);*/
 
 void erep(int client_fd);
 
