@@ -1,4 +1,6 @@
-Add_Route("/hello", "GET", "auto", "<html><h1>Hello</h1></html>")
+Add_Route("/hello", "GET", "auto", function()
+	return "<html><h1>Hello</h1></html>"
+end)
 
 Add_Route("/test", "GET", "auto", function()
 	local file = io.open(SERVER_ROOT .. "/test.html", "r")
@@ -19,3 +21,4 @@ Add_Route("/_routes", "GET", "json", function()
 end)
 
 Info("Added routes")
+-- Vim: set expandtab tabstop=2 shiftwidth=2:
