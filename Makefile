@@ -2,7 +2,7 @@ BIN = simpleHttpd
 
 CC=clang
 LD=clang
-CFLAGS=-ggdb -DBIN_NAME=\"${BIN}\" -DGIT_COMMIT=\"$(shell git rev-parse --short HEAD)\" -DLOG_USE_COLOR=1 -Wextra -Wall 
+CFLAGS=-ggdb -DBIN_NAME=\"${BIN}\" -DGIT_COMMIT=\"$(shell git rev-parse --short HEAD)\" -DLOG_USE_COLOR=1 -Wextra -Wall
 LDFLAGS=-lmagic -llua -lm -ldl
 
 CC_U = ${shell echo ${CC}-CC | sed 's/.*/\U&/'}
@@ -16,13 +16,13 @@ CSRCS = $(shell find ${SRC_DIR} -type f -name "*.c")
 
 OBJS = $(patsubst $(SRC_DIR)/%.c, $(BUILD_DIR)/%.o, $(CSRCS))
 
-all: ${BIN}
+all: bootstrap ${BIN}
 	@printf "  Done bulding\n"
 
 restore:
 	mv ${BIN}.prev ${BIN}
 
-LUA_VER = lua-5.4.6
+LUA_VER = lua-5.4.7
 install_lua:
 	@printf "  %-9s %s\n" "RM" "${LUA_VER} ${LUA_VER}.tar.gz"
 	@rm ${LUA_VER} ${LUA_VER}.tar.gz -fr
@@ -59,3 +59,7 @@ $(BIN): $(OBJS)
 clean:
 	@printf "  %-9s %s\n" "RM" "${LUA_VER} ${LUA_VER}.tar.gz ${BIN}"
 	@rm -rf ${BUILD_DIR} ${LUA_VER} ${LUA_VER}.tar.gz ${BIN}
+	$(MAKE) -C src/special_rets/ clean
+
+bootstrap:
+	$(MAKE) -C src/special_rets/
