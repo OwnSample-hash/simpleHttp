@@ -11,6 +11,8 @@ int open_sockets_len = 0;
 void ctrl_c_h(int sigframe) {
   log_info("Quitting and freeing things, %d, with sigframe %d", getpid(),
            sigframe);
+  if (sigframe == -1)
+    log_trace("Called from a child!");
 
   lua_close(gL);
   for (int i = 0; i < open_sockets_len; i++) {
@@ -32,5 +34,6 @@ void ctrl_c_h(int sigframe) {
   while ((ptr = pop_ptr())) {
     free(ptr);
   }
-  exit(0);
+  if (sigframe != -1)
+    exit(0);
 }
