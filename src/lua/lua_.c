@@ -63,3 +63,4 @@ int lua_log_log(lua_State *L) {
   log_log(level, file, line, fmt);
   return 0;
 }
+// Vim: set expandtab tabstop=2 shiftwidth=2:
