@@ -1,5 +1,6 @@
 #include "mime_guess.h"
 #include "log/log.h"
+#include <stdlib.h>
 #include <string.h>
 
 char *ContentType(m_type type, const char *payload) {
