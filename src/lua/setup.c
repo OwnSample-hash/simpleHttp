@@ -8,6 +8,18 @@
 #include <unistd.h>
 
 int lua_create_socket(lua_State *L) {
+  lua_getglobal(L, "__DRV");
+  luaL_checktype(L, -1, LUA_TLIGHTUSERDATA);
+  driver_t *drv = lua_touserdata(L, -1);
+  if (!drv) {
+    log_fatal("Failed to get drv");
+    return 0;
+  }
+  if (drv->socket_count >= MAX_OPEN_SOCKETS) {
+    log_fatal("Too many sockets, max is %d", MAX_OPEN_SOCKETS);
+    lua_pushliteral(L, "Too many sockets, max is 4");
+    lua_error(L);
+  }
   luaL_checkstring(L, 1);  // IP
   luaL_checkinteger(L, 2); // PORT
   luaL_checkinteger(L, 3); // DOMAIN
@@ -27,13 +39,6 @@ int lua_create_socket(lua_State *L) {
     lua_error(L);
   }
 
-  lua_getglobal(L, "__DRV");
-  luaL_checktype(L, -1, LUA_TLIGHTUSERDATA);
-  driver_t *drv = lua_touserdata(L, -1);
-  if (!drv) {
-    log_fatal("Failed to get drv");
-    return 0;
-  }
   ns->addr = calloc(MAX_ADDR_LEN, sizeof(char));
   strncpy((char *)ns->addr, ip, strlen(ip));
   memcpy((int *)&(ns->port), &port, sizeof(int));
