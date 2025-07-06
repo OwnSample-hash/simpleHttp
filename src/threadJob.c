@@ -3,7 +3,6 @@
 #include "log/log.h"
 #include "lua/setup.h"
 #include "lua/virtual_path.h"
-#include "parser.h"
 #include "parserNev.h"
 #include "quit_handler.h"
 #include <netinet/in.h>
@@ -63,23 +62,15 @@ void threadJob(int client_sockfd, const char *server,
         exit(THREAD_SOCKET_HUNGUP);
       }
       if (fds[0].revents & POLL_PRI || fds[0].revents & POLLRDBAND) {
-        int nbytes_read = read(client_sockfd, buf, BUFSIZ);
-        switch (parseReq(buf, nbytes_read, client_sockfd, server, keep_alive)) {
-        case NIL:
-          log_debug("Nil resp");
-          erep(client_sockfd);
-          break;
-        case HANDLED:
-          log_debug("Client handeld other ways");
-          break;
-        case WRONG_PROTOCOL:
-          log_debug("Client use wrong protocol");
-          erep(client_sockfd);
-          break;
-        default:
-          erep(client_sockfd);
-          break;
+        request_t *req = init_request(client_sockfd);
+        if (req == NULL) {
+          log_fatal("Failed to allocate request");
+          free(buf);
+          exit(THREAD_FAIL);
         }
+        parse_request(req);
+        process_request(req, server, &local_keep_alive);
+        free_request(req);
       }
       local_keep_alive.max--;
       log_info("END OF REQUEST");
@@ -102,3 +93,4 @@ void threadJob(int client_sockfd, const char *server,
   log_info("Connection closed on fd:%d exiting", client_sockfd);
   exit(0);
 }
+// Vim: set expandtab tabstop=2 shiftwidth=2:

@@ -44,18 +44,17 @@ void free_request(request_t *req) {
   free(req);
 }
 
-extern node_t *splitOn_c(char *str, const char *delimiter);
-// {
-//   node_t *head = NULL;
-//   char *token = strtok(str, delimiter);
-//
-//   while (token != NULL) {
-//     insertNode(&head, token, strlen(token) + 1);
-//     token = strtok(NULL, delimiter);
-//   }
-//
-//   return head;
-// }
+extern node_t *splitOn_c(char *str, const char *delimiter) {
+  node_t *head = NULL;
+  char *token = strtok(str, delimiter);
+
+  while (token != NULL) {
+    insertNode(&head, token, strlen(token) + 1);
+    token = strtok(NULL, delimiter);
+  }
+
+  return head;
+}
 
 void get_buffer(const request_t *req, const char **buf, size_t *size) {
   if (buf == NULL || size == NULL) {
@@ -224,7 +223,7 @@ parse_status_t process_request(request_t *req, const char *root,
 
   const char *tmp = NULL;
   const char *index = "/index.html";
-  if (strncmp(req->path, "/", 1) == 0) {
+  if (strcmp(req->path, "/") <= 0) {
     tmp = req->path;
     req->path = index;
   }
