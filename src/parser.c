@@ -2,14 +2,11 @@
 #include "link_list.h"
 #include "log/log.h"
 #include "lua/virtual_path.h"
+#include "spec.h"
 #include "write_response.h"
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
-
-#include "special_rets/404.h"
-#include "special_rets/405.h"
-#include "special_rets/500.h"
 
 struct request {
   int cfd;
@@ -208,12 +205,12 @@ parse_status_t process_request(request_t *req, const char *root,
     return PARSE_OK; // Handled by Lua script
   case WRONG_VERB:
     log_error("Wrong HTTP verb for virtual path");
-    SR_405(res, req->cfd);
+    sr(res, (spec_response_t){.status = 405, .data = "Method Not Allowed"});
     free_response(res);
     return PARSE_ERR_INVALID_METHOD; // Wrong HTTP method
   case NIL:
     log_error("Virtual path resolution returned NIL");
-    SR_500(res, req->cfd);
+    sr(res, (spec_response_t){.status = 404, .data = "Not Found"});
     free_response(res);
     return PARSE_ERR_INVALID_URI; // Invalid URI
   case STATIC:
@@ -230,6 +227,9 @@ parse_status_t process_request(request_t *req, const char *root,
   char *file = calloc(strlen(root) + strlen(req->path) + 2, sizeof(char));
   if (file == NULL) {
     log_error("Failed to allocate memory for file name");
+    sr(res, (spec_response_t){.status = 500, .data = "Internal Server Error"});
+    free_response(res);
+    free(file);
     return PARSE_ERR_NO_MEMORY; // Memory allocation failed
   }
   snprintf(file, strlen(root) + strlen(req->path) + 2, "%s%s", root, req->path);
@@ -239,6 +239,8 @@ parse_status_t process_request(request_t *req, const char *root,
   if (res == NULL) {
     log_error("Failed to create response");
     free(file);
+    sr(res, (spec_response_t){.status = 500, .data = "Internal Server Error"});
+    free_response(res);
     return PARSE_ERR_NO_MEMORY; // Failed to create response
   }
 
@@ -247,7 +249,7 @@ parse_status_t process_request(request_t *req, const char *root,
   if (stat(file, &st) == -1) {
     log_error("File not found: %s", file);
     free(file);
-    SR_404(res, req->cfd);
+    sr(res, (spec_response_t){.status = 404, .data = "Not Found"});
     free_response(res);
     return PARSE_ERR_FILE_NOT_FOUND; // File not found
   }
@@ -261,7 +263,7 @@ parse_status_t process_request(request_t *req, const char *root,
   if (st.st_size == 0) {
     log_warn("Empty file: %s", file);
     free(file);
-    SR_404(res, req->cfd);
+    sr(res, (spec_response_t){.status = 204, .data = "No Content"});
     free_response(res);
     return PARSE_OK; // Empty file, nothing to serve
   }

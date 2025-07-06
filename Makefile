@@ -16,7 +16,7 @@ CSRCS = $(shell find ${SRC_DIR} -type f -name "*.c")
 
 OBJS = $(patsubst $(SRC_DIR)/%.c, $(BUILD_DIR)/%.o, $(CSRCS))
 
-all: bootstrap ${BIN}
+all: ${BIN}
 	@printf "  Done bulding\n"
 
 restore:
@@ -59,7 +59,4 @@ $(BIN): $(OBJS)
 clean:
 	@printf "  %-9s %s\n" "RM" "${LUA_VER} ${LUA_VER}.tar.gz ${BIN}"
 	@rm -rf ${BUILD_DIR} ${LUA_VER} ${LUA_VER}.tar.gz ${BIN}
-	$(MAKE) -C src/special_rets/ clean
 
-bootstrap:
-	$(MAKE) -C src/special_rets/
