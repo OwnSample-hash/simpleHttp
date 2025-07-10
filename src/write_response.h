@@ -63,17 +63,17 @@ static const char HEADER_KEEP[] =
  * @typedef pair
  * @brief A pair of integer and string
  *
+ * @var pair::p1
+ * @brief The string value
+ *
+ * @var pair::p2
+ * @brief The integer value
  */
 typedef struct pair {
-  /**
-   * @brief The integer value
-   */
   const int p1;
-  /**
-   * @brief The string value
-   */
   const char *p2;
 } pair_is_t;
+/**< @copydoc pair */
 
 /**
  * @struct map
@@ -137,16 +137,15 @@ typedef struct header {
   const char *name;
   const char *value;
 } header_t;
-/**<@copydoc header */ #ifndef INCLUDE_SRC_WRITE_RESPONSE_H_
-#define INCLUDE_SRC_WRITE_RESPONSE_H_
+/**<@copydoc header */
 
-#endif // INCLUDE_SRC_WRITE_RESPONSE_H_
 /**
  * @typedef response
  * @brief The response opaque struct
  *
  */
 typedef struct response response_t;
+/**< @copydoc response */
 
 /**
  * @brief Sends the response
@@ -227,6 +226,7 @@ void set_status(response_t *res, int code);
  *
  * @param res The response struct
  * @param file The file to add to the payload
+ * @param mode The mode to open the file in
  * @return size_t The length of the payload after adding the file
  */
 size_t add_file_to_payload(response_t *res, const char *file, const char *mode);

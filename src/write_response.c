@@ -206,6 +206,11 @@ int gen_header(char **dst, const map_t *status,
   }
 }
 
+/**
+ * @brief Frees a header list response
+ *
+ * @param data The data to free, should be a header_t pointer
+ */
 void free_list_response(void *data) {
   if (data == NULL) {
     return;
@@ -235,7 +240,7 @@ size_t set_payload(response_t *res, const char *payload, size_t len) {
   return len;
 }
 
-size_t add_to_Payload(response_t *res, const char *payload, size_t len) {
+size_t add_to_payload(response_t *res, const char *payload, size_t len) {
   log_trace("Adding payload of len %d", len);
   if (res->payload == NULL) {
     return set_payload(res, payload, len);

@@ -9,8 +9,9 @@
 #include "setup.h"
 
 /**
- * @enum lookup_status
- * @brief Status of the lookup
+ * @brief Enumeration for virtual path lookup status
+ *
+ * This enum defines the possible outcomes of a virtual path lookup.
  */
 typedef enum {
   NIL = -1,
