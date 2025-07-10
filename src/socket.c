@@ -100,7 +100,7 @@ int createSocket(new_sock_t *sock) {
     perror("listen");
   }
   log_trace("Socket will listen for %d conenction", sock->listen);
-  open_sockets[open_sockets_len++] = (open_socket){.fd = sfd, .conf = sock};
+  open_sockets[open_sockets_len++] = (open_socket_t){.fd = sfd, .conf = sock};
   return sfd;
 }
 

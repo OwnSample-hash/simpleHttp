@@ -1,3 +1,8 @@
+/**
+ * @file
+ * @brief HTTP response specification header file.
+ */
+
 #ifndef __THREADJOB_HTTP__
 #define __THREADJOB_HTTP__
 
@@ -15,15 +20,6 @@ typedef enum {
   THREAD_SOCKET_HUNGUP,
   THREAD_TIMEOUT,
 } quit_status_e;
-
-/**
- * @typedef quit_status_t
- * Unsed up for removal
- */
-typedef struct {
-  int cfd;
-  keep_alive_t *keep_alive;
-} quit_status_t;
 
 /**
  * @brief The main function for the thread

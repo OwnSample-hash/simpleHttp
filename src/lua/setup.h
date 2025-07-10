@@ -1,3 +1,8 @@
+/**
+ * @file
+ * @brief Lua setup
+ */
+
 #ifndef __HTTP_SETUP__
 #define __HTTP_SETUP__
 
@@ -8,8 +13,17 @@
 /**
  * @typedef keep_alive_t
  * @brief Keep alive settings
+ *
+ * @var keep_alive::keep_alive
+ * @brief Wheter to keep alive the connection or not
+ *
+ * @var keep_alive::timeout
+ * @brief How long should we keep the connection before timing out, in ms
+ *
+ * @var keep_alive::max
+ * @brief How many request can this conection server before closing it.
  */
-typedef struct {
+typedef struct keep_alive {
   bool keep_alive;
   int timeout, max;
 } keep_alive_t;
@@ -17,6 +31,24 @@ typedef struct {
 /**
  * @typedef driver_t
  * @brief Driver settings for the server
+ *
+ * @var _drv::socket
+ * @brief The listening sockets that belongs to this driver
+ *
+ * @var _drv::socket_count
+ * @brief The number of sockets
+ *
+ * @var _drv::log_level
+ * @brief The level that we should log
+ *
+ * @var _drv::server_root
+ * @brief The server root
+ *
+ * @var _drv::routes_root
+ * @brief Where to load lua routes from
+ *
+ * @var _drv::keep_alive
+ * @brief Keep alive settings
  */
 typedef struct _drv {
   new_sock_t **socket;

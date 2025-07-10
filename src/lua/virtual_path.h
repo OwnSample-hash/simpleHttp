@@ -1,5 +1,10 @@
-#ifndef __HTTP__V_PATH__
-#define __HTTP__V_PATH__
+/**
+ * @file
+ * @brief Virtual path resolution
+ */
+
+#ifndef __HTTP_V_PATH__
+#define __HTTP_V_PATH__
 
 #include "setup.h"
 

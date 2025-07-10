@@ -1,3 +1,50 @@
+/**
+ * @file
+ * @brief Represents some byte stuff
+ *
+ * @def KB_1
+ * 1 KiB
+ *
+ * @def KB_10
+ * 10 KiB
+ *
+ * @def KB_100
+ * 100 KiB
+ *
+ * @def MB_1
+ * 1 MiB
+ *
+ * @def MB_10
+ * 10 MiB
+ *
+ * @def MB_100
+ * 100 MiB
+ *
+ * @def GB_1
+ * 1 GiB
+ *
+ * @def GB_10
+ * 10 GiB
+ *
+ * @def GB_100
+ * 100 GiB
+ *
+ * @def ASCII_A
+ * Ascii code of 'A'
+ *
+ * @def ASCII_Z
+ * Ascii code of 'Z' by adding 0x19
+ *
+ * @def ASCII_SPC
+ * Ascii code of ' '
+ *
+ * @def ASCII_AL
+ * Ascii code of 'a' by adding spc to 'A'
+ *
+ * @def ASCII_ZL
+ * Ascii code of 'z' by adding spc to 'Z'
+ */
+
 #ifndef __BYTES__HTTP_
 #define __BYTES__HTTP_
 

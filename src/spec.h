@@ -1,3 +1,8 @@
+/**
+ * @file
+ * @brief HTTP response specification header file.
+ */
+
 #ifndef __HTTP_SPEC_H__
 #define __HTTP_SPEC_H__
 
@@ -6,6 +11,9 @@
 #include <stdlib.h>
 #include <string.h>
 
+/**
+ * @brief A format string for the HTML payload.
+ */
 static const char payload_fmt[] = "<html>"
                                   "<head>"
                                   "</head>"
@@ -14,14 +22,35 @@ static const char payload_fmt[] = "<html>"
                                   "<p>%s</p>"
                                   "</body>"
                                   "</html>";
-
-typedef struct {
+/**
+ * @brief A structure to hold the response specification.
+ *
+ * @var spec_response::status
+ * @brief The HTTP status code
+ *
+ * @var spec_response::data
+ * @brief  Either a short description about the status code or a file path
+ *
+ * @var spec_response::mode
+ * @brief If null then data is treated as description or used for fopen(data,
+ * mode)
+ */
+typedef struct spec_response {
   int status;
   char *data;
   char *mode;
 } spec_response_t;
+/**<@copydoc spec_response */
 
-static size_t sr(response_t *res, spec_response_t spec) {
+/**
+ * @brief Generates a response based on the provided specification.
+ *
+ * @param res Pointer to the response structure.
+ * @param spec The specification for the response, including status code,
+ * data, and mode.
+ * @return
+ */
+static inline size_t sr(response_t *res, spec_response_t spec) {
   set_status(res, spec.status);
   if (spec.mode == NULL) {
     size_t len = strlen(payload_fmt) + strlen(spec.data) +
@@ -35,6 +64,7 @@ static size_t sr(response_t *res, spec_response_t spec) {
     set_payload(res, payload, len);
     add_header(res, "Content-Type", "text/html");
     add_header(res, "Content-Length", TO_BASE(len, 10));
+    free(payload);
   } else {
     FILE *fp = fopen(spec.data, spec.mode);
     if (!fp) {
@@ -54,7 +84,10 @@ static size_t sr(response_t *res, spec_response_t spec) {
     set_payload(res, payload, len);
     add_header(res, "Content-Type", "text/html");
     add_header(res, "Content-Length", TO_BASE(len, 10));
+    fclose(fp);
+    free(payload);
   }
   return write_response(res);
 }
 #endif // __HTTP_SPEC_H__
+// Vim: set expandtab tabstop=2 shiftwidth=2:

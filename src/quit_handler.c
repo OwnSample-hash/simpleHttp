@@ -5,7 +5,7 @@
 #include <lua.h>
 #include <stdlib.h>
 
-open_socket open_sockets[MAX_OPEN_SOCKETS] = {0};
+open_socket_t open_sockets[MAX_OPEN_SOCKETS] = {0};
 int open_sockets_len = 0;
 
 void ctrl_c_h(int sigframe) {

@@ -20,10 +20,14 @@ typedef enum { HTTP, HTTPS } protocol;
 
 /**
  * @brief The ssl_conf struct
+ *
+ * @var ssl_conf::full_key
+ * @brief The full key path
  */
-typedef struct {
+typedef struct ssl_conf {
   const char *full_key;
-} ssl_conf;
+} ssl_conf_t;
+/**<@copydoc ssl_conf */
 
 /**
  * @def MAX_ADDR_LEN
@@ -36,39 +40,55 @@ typedef struct {
 /**
  * @brief The socket address struct
  *
- * @var addr The address
- * @var port The port
- * @var domain The domain
- * @var listen The listen same as listen(2)
- * @var proto The protocol
- * @var ssl_conf The ssl configuration unused
+ * @var new_sock::addr
+ * The address
+ *
+ * @var new_sock::port
+ * The port
+ *
+ * @var new_sock::domain
+ * The domain
+ *
+ * @var new_sock::listen
+ * Listen same as listen(2)
+ *
+ * @var new_sock::proto
+ * The protocol
+ *
+ * @var new_sock::ssl_conf
+ * The ssl configuration unused
  */
-typedef struct {
+typedef struct new_sock {
   char *addr;
   const int port;
   const int domain;
   const int listen;
   const protocol proto;
-  const ssl_conf *ssl_conf;
+  const ssl_conf_t *ssl_conf;
 } new_sock_t;
+/**<@copydoc new_sock */
 
 #define MAX_OPEN_SOCKETS 4
 
 /**
- * @brief The open socket struct
+ * @brief Open socket struct
  *
- * @var fd The file descriptor
- * @var conf The socket configuration
+ * @var open_socket::fd
+ * The file descriptor
+ *
+ * @var open_socket::conf
+ * The socket configuration
  */
-typedef struct {
+typedef struct open_socket {
   int fd;
   new_sock_t *conf;
-} open_socket;
+} open_socket_t;
+/**<@copydoc open_socket */
 
 /**
  * @brief The open socket list
  */
-extern open_socket open_sockets[MAX_OPEN_SOCKETS];
+extern open_socket_t open_sockets[MAX_OPEN_SOCKETS];
 
 /**
  * @brief The open socket list length

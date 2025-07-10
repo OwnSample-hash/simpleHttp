@@ -1,3 +1,8 @@
+/**
+ * @file
+ * @brief Quit handler
+ */
+
 #ifndef __QUIT_HANDLER_HTTP__
 #define __QUIT_HANDLER_HTTP__
 
@@ -11,12 +16,20 @@
 #define STACK_COUNT 64
 
 /**
- * @brief The stack to hold pointers to be freed
+ * @struct free_stack
+ * @brief The stack to hold pointers to be freed when quitting
+ *
+ * @var free_stack::pos
+ * The position and size of the stack
+ *
+ * @var free_stack::ptrs
+ * Pointers to be freed
  */
-typedef struct {
+typedef struct free_stack {
   unsigned int pos;
   void *ptrs[STACK_COUNT];
 } free_stack_t;
+/**<@copydoc free_stack*/
 
 /**
  * @brief The global stack
@@ -40,5 +53,9 @@ void save_ptr(void *data);
  * @param sigframe The signal frame
  */
 void ctrl_c_h(int sigframe);
+
+/**
+ * @brief Global driver
+ */
 extern driver_t *drv;
 #endif // !__QUIT_HANDLER_HTTP__
