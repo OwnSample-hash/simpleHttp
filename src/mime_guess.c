@@ -4,6 +4,25 @@
 #include <string.h>
 
 char *ContentType(m_type type, const char *payload) {
+  if (payload == NULL) {
+    log_error("Payload is NULL");
+    return NULL;
+  }
+  const char *dot = strrchr(payload, '.');
+  if (!dot)
+    goto cont;
+  log_trace("File extension: %s", dot);
+  for (int i = 0; mime_map[i].name != NULL; i++) {
+    if (strcmp(mime_map[i].ext, dot) == 0) {
+      log_trace("Found MIME type: %s for extension: %s", mime_map[i].name,
+                mime_map[i].ext);
+      return strdup(mime_map[i].name);
+    }
+  }
+
+  // If no match found, use libmagic to guess the MIME type
+cont:
+  __asm__ __volatile__("nop" : : : "memory");
   const char *mime;
   magic_t magic;
   magic = magic_open(MAGIC_MIME | MAGIC_SYMLINK | MAGIC_CHECK);
@@ -36,3 +55,4 @@ char *ContentType(m_type type, const char *payload) {
   magic_close(magic);
   return ret;
 }
+// Vim: set expandtab tabstop=2 shiftwidth=2:
