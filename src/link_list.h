@@ -36,7 +36,7 @@ typedef struct node {
  * @param size Size of the data
  * @return The node that holds that data
  */
-node_t *createNode(void *data, size_t size);
+node_t *create_node(void *data, size_t size);
 
 /**
  * @brief Inserts a node to a list
@@ -45,7 +45,7 @@ node_t *createNode(void *data, size_t size);
  * @param data Data to insert
  * @param size Size of the data to insert
  */
-void insertNode(node_t **head, void *data, size_t size);
+void insert_node(node_t **head, void *data, size_t size);
 
 /*[[gnu::unused]] void deleteNode(node_t **head, void *key);*/
 
@@ -54,7 +54,7 @@ void insertNode(node_t **head, void *data, size_t size);
  *
  * @param head List to free
  */
-void freeList(node_t *head);
+void free_list(node_t *head);
 
 /**
  * @brief Free a list with a custom free function
@@ -62,14 +62,14 @@ void freeList(node_t *head);
  * @param head List to free
  * @param freeFunc Function to free the data in each node
  */
-void freeListCustom(node_t *head, void (*freeFunc)(void *));
+void free_list_custom(node_t *head, void (*freeFunc)(void *));
 /**
  * @brief Prints the list as strings unused and marked as deprecated
  *
  * @param head List to print
  */
 [[deprecated("Not deprecated, just unused")]]
-void displayList(node_t *head);
+void display_list(node_t *head);
 
 #endif // __LINK_LIST_H__
 // Vim: set expandtab tabstop=2 shiftwidth=2:

@@ -5,6 +5,7 @@
 
 #include "write_response.h"
 #include "itoa.h"
+#include "link_list.h"
 #include "log/log.h"
 #include "mime_guess.h"
 #include <errno.h>
@@ -23,14 +24,14 @@
  * @var response::cfd
  * The client file descriptor
  *
- * @var response::additional_header
+ * @var response::status
+ * A pointer to a map_t containing the current status
+ *
+ * @var response::keep_alive
+ * Keep alive settings
+ *
+ * @var response::headers
  * The additional headers
- *
- * @var response::header_count
- * The number of additional headers
- *
- * @var response::header_size
- * The size of the additional headers
  *
  * @var response::payload
  * The payload
@@ -51,9 +52,7 @@ struct response {
   const int cfd;
   const map_t *status;
   const keep_alive_t *keep_alive;
-  header_t *additional_header;
-  size_t header_count;
-  size_t header_size;
+  node_t *headers;
   char *payload;
   size_t len;
   char *buffer;
@@ -77,19 +76,15 @@ size_t write_response(response_t *res) {
   free(buf);
   log_info("Writing response to client %d", res->cfd);
   size_t total_write = 0;
-  if (res->additional_header) {
-    for (size_t i = 0; i < res->header_count; i++) {
-      size_t tmp = snprintf((res->buffer + res->buffer_pos),
-                            5 + strlen(res->additional_header[i].name) +
-                                strlen(res->additional_header[i].value),
-                            "%s: %s\r\n", res->additional_header[i].name,
-                            res->additional_header[i].value);
-      log_trace("name: \"%s\"", res->additional_header[i].name);
-      log_trace("value: \"%s\"", res->additional_header[i].value);
-      // tmp--;
-      res->buffer_pos += tmp;
-      total_write += tmp;
-    }
+  node_t *current = res->headers;
+  while (current != NULL) {
+    header_t *header = (header_t *)current->data;
+    size_t tmp = snprintf((res->buffer + res->buffer_pos),
+                          5 + strlen(header->name) + strlen(header->value),
+                          "%s: %s\r\n", header->name, header->value);
+    res->buffer_pos += tmp;
+    total_write += tmp;
+    current = current->next;
   }
   log_debug("errno: %d", errno);
   size_t i = 0;
@@ -143,9 +138,7 @@ response_t *new_response(int cfd, const map_t *status,
   }
   int *ccfd = (int *)&res->cfd;
   *ccfd = cfd;
-  res->additional_header = NULL;
-  res->header_count = 0;
-  res->header_size = 0;
+  res->headers = NULL;
   res->payload = NULL;
   res->fp = NULL;
   res->len = 0;
@@ -162,53 +155,28 @@ response_t *new_response(int cfd, const map_t *status,
   return res;
 }
 
-header_t *expandHeader(header_t *header, size_t size) {
-  header_t *tmp = realloc(header, (1 << size) * sizeof(header_t));
-  if (!tmp) {
-    log_fatal("Failed to realloc mem for header");
-    return NULL;
-  }
-  return tmp;
-}
-
 void add_header(response_t *res, const char *name, const char *value) {
-  if (res->additional_header == NULL) {
-    res->additional_header = calloc(1, sizeof(header_t));
-    if (!res->additional_header) {
-      log_fatal("Failed to calloc mem for header");
-      return;
-    }
-  }
-  if (res->header_count == 0 || res->header_count == (1 << res->header_size)) {
-    res->additional_header =
-        expandHeader(res->additional_header, ++(res->header_size));
-  }
-  res->additional_header[res->header_count].name =
-      calloc(strlen(name), sizeof(char));
-  res->additional_header[res->header_count].value =
-      calloc(strlen(value), sizeof(char));
-  if (!res->additional_header[res->header_count].name ||
-      !res->additional_header[res->header_count].value) {
-    log_fatal("Failed to calloc mem for header");
+  header_t *pair = calloc(sizeof(header_t), 1);
+  if (!pair) {
+    log_fatal("Failed to calloc mem for header pair");
     return;
   }
-
-  strncpy((char *)res->additional_header[res->header_count].name, name,
-          strlen(name));
-  strncpy((char *)res->additional_header[res->header_count].value, value,
-          strlen(value));
-  res->header_count++;
-}
-
-void trim_response(response_t *res) {
-  log_trace("Trimming header from %d to %d", 1 << res->header_size,
-            res->header_count);
-  header_t *tmp =
-      realloc(res->additional_header, res->header_count * sizeof(header_t));
-  if (!tmp) {
-    log_fatal("Failed to realloc mem for header");
+  pair->name = strdup(name);
+  if (!pair->name) {
+    log_fatal("Failed to strdup name for header pair");
+    free(pair);
+    return;
   }
-  res->additional_header = tmp;
+  pair->value = strdup(value);
+  if (!pair->value) {
+    log_fatal("Failed to strdup value for header pair");
+    free((char *)pair->name);
+    free(pair);
+    return;
+  }
+  insert_node(&res->headers, pair, sizeof(header_t));
+  log_debug("Added header: %s: %s", pair->name, pair->value);
+  free(pair);
 }
 
 int gen_header(char **dst, const map_t *status,
@@ -238,14 +206,18 @@ int gen_header(char **dst, const map_t *status,
   }
 }
 
-void free_response(response_t *resp) {
-  if (resp->additional_header != NULL) {
-    for (size_t i = 0; i < resp->header_count; i++) {
-      free((char *)resp->additional_header[i].name);
-      free((char *)resp->additional_header[i].value);
-    }
-    free(resp->additional_header);
+void free_list_response(void *data) {
+  if (data == NULL) {
+    return;
   }
+  header_t *header = (header_t *)data;
+  free((void *)header->name);
+  free((void *)header->value);
+  free(header);
+}
+
+void free_response(response_t *resp) {
+  free_list_custom(resp->headers, free_list_response);
   free(resp->buffer);
   free(resp->payload);
   free(resp);

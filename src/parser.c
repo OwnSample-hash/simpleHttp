@@ -8,6 +8,34 @@
 #include <string.h>
 #include <sys/stat.h>
 
+/**
+ * @struct request
+ * @brief The request struct opaque struct
+ *
+ * @var request::cfd
+ * Client file descriptor
+ *
+ * @var request::method
+ * request method
+ *
+ * @var request::path
+ * Uri path
+ *
+ * @var request::path_length
+ * Path lenght
+ *
+ * @var request::headers
+ * Linked list to the headers
+ *
+ * @var request::body
+ * Body of the request if any
+ *
+ * @var request::body_length
+ * Lenght of the body request if any
+ *
+ * @var request::query_params
+ * Query params
+ */
 struct request {
   int cfd;
   http_method_t method;
@@ -35,7 +63,7 @@ request_t *init_request(int cfd) {
 }
 
 void free_request(request_t *req) {
-  freeList(req->headers);
+  free_list(req->headers);
   free((void *)req->path);
   free((void *)req->body);
   free(req);
@@ -46,19 +74,11 @@ extern node_t *splitOn_c(char *str, const char *delimiter) {
   char *token = strtok(str, delimiter);
 
   while (token != NULL) {
-    insertNode(&head, token, strlen(token) + 1);
+    insert_node(&head, token, strlen(token) + 1);
     token = strtok(NULL, delimiter);
   }
 
   return head;
-}
-
-void get_buffer(const request_t *req, const char **buf, size_t *size) {
-  if (buf == NULL || size == NULL) {
-    *buf = req->body;
-    *size = req->body_length;
-    return; // Invalid parameters
-  }
 }
 
 const char *method_to_string(http_method_t method) {
@@ -123,7 +143,7 @@ parse_status_t parse_request(request_t *req) {
   req->path = strdup(lines->next->data);
   if (req->path == NULL) {
     log_error("Failed to allocate memory for URI");
-    freeList(lines);
+    free_list(lines);
     fclose(fp);
     return PARSE_ERR_NO_MEMORY;
   }
@@ -138,7 +158,7 @@ parse_status_t parse_request(request_t *req) {
     char *header_line = strdup(buffer);
     if (header_line == NULL) {
       log_error("Failed to allocate memory for header line");
-      freeList(lines);
+      free_list(lines);
       fclose(fp);
       return PARSE_ERR_NO_MEMORY;
     }
@@ -148,14 +168,16 @@ parse_status_t parse_request(request_t *req) {
       if (header_pair == NULL) {
         log_error("Failed to allocate memory for header pair");
         free(header_line);
-        freeList(lines);
+        free_list(lines);
         fclose(fp);
         return PARSE_ERR_NO_MEMORY;
       }
-      header_pair->key = header_node->data;
-      header_pair->value = header_node->next->data;
-      insertNode(&req->headers, header_pair, sizeof(pair_ss_t));
+      header_pair->v1 = header_node->data;
+      header_pair->v2 = header_node->next->data;
+      insert_node(&req->headers, header_pair, sizeof(pair_ss_t));
+      free(header_pair);
     }
+    free_list(header_node);
     free(header_line);
   }
 
@@ -166,7 +188,7 @@ parse_status_t parse_request(request_t *req) {
   //   temp = temp->next;
   // }
 
-  freeList(lines);
+  free_list(lines);
   int fd = dup(req->cfd);
   if (fd == -1) {
     log_error("Failed to duplicate file descriptor");

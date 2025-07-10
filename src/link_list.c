@@ -1,10 +1,9 @@
 #include "link_list.h"
 #include "log/log.h"
-#include <errno.h>
 #include <stdlib.h>
 #include <string.h>
 
-node_t *createNode(void *data, size_t size) {
+node_t *create_node(void *data, size_t size) {
   if (data == NULL || size == 0) {
     log_error("Invalid data or size");
     return NULL;
@@ -24,8 +23,8 @@ node_t *createNode(void *data, size_t size) {
   return newNode;
 }
 
-void insertNode(node_t **head, void *data, size_t size) {
-  node_t *newNode = createNode(data, size);
+void insert_node(node_t **head, void *data, size_t size) {
+  node_t *newNode = create_node(data, size);
   if (*head == NULL) {
     *head = newNode;
     return;
@@ -37,25 +36,33 @@ void insertNode(node_t **head, void *data, size_t size) {
   temp->next = newNode;
 }
 
-void freeList(node_t *head) {
-  perror("current errno");
-  errno = 0;
-  perror("current errno");
+void free_list(node_t *head) {
   node_t *temp;
-  int i = 0;
   while (head != NULL) {
     temp = head;
     head = head->next;
-    log_trace("Freeing node %d", i++);
     free(temp->data);
     free(temp);
   }
 }
 
-void displayList(node_t *head) {
+void free_list_custom(node_t *head, void (*freeFunc)(void *)) {
+  node_t *temp;
+  while (head != NULL) {
+    temp = head;
+    head = head->next;
+    if (temp->data && freeFunc) {
+      freeFunc(temp->data);
+    }
+    free(temp);
+  }
+}
+
+void display_list(node_t *head) {
   node_t *temp = head;
   while (temp != NULL) {
     log_debug("%s", (char *)temp->data);
     temp = temp->next;
   }
 }
+// Vim: set expandtab tabstop=2 shiftwidth=2:

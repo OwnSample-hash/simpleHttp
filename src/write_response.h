@@ -1,3 +1,8 @@
+/**
+ * @file
+ * @brief HTTP response writting system
+ */
+
 #ifndef __WRITE_RESPONSE_H__
 #define __WRITE_RESPONSE_H__
 
@@ -6,6 +11,26 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <unistd.h>
+
+/**
+ * @def UNUSED
+ * @brief Used for supressing unused warnings
+ *
+ * @def BIN_NAME
+ * @brief Containes the a hardcoded bin name and a git commit
+ *
+ * @def HEADER_BASE
+ * @brief The base of response header
+ *
+ * @def HTTP_EMPTY_LINE
+ * @brief And HTTP empty line
+ *
+ * @def HTTP_EMPTY_LINE_LEN
+ * @brief Len of an empty line
+ *
+ * @def DEFAULT_LEN
+ * @brief The default len for a buffer
+ */
 
 #define UNUSED(x) (void)(x)
 
@@ -54,11 +79,17 @@ typedef struct pair {
  * @struct map
  * @brief A map of a pair of integer and string and a string
  *
+ * @var map::key
+ * Key of the map in int and string form
+ *
+ * @var map::value
+ * The value of the map
  */
 typedef struct map {
   const pair_is_t key;
   const char *value;
 } map_t;
+/**< @copydoc map*/
 
 /**
  * @brief Maps the status code to the status message
@@ -106,7 +137,10 @@ typedef struct header {
   const char *name;
   const char *value;
 } header_t;
+/**<@copydoc header */ #ifndef INCLUDE_SRC_WRITE_RESPONSE_H_
+#define INCLUDE_SRC_WRITE_RESPONSE_H_
 
+#endif // INCLUDE_SRC_WRITE_RESPONSE_H_
 /**
  * @typedef response
  * @brief The response opaque struct
@@ -141,15 +175,6 @@ response_t *new_response(int cfd, const map_t *status,
  * @param value The header value
  */
 void add_header(response_t *res, const char *name, const char *value);
-
-/*header_t *expandHeader(header_t *header, size_t size);*/
-
-/**
- * @brief Trims the header in the response
- *
- * @param resp The response struct
- */
-void trim_response(response_t *resp);
 
 /**
  * @brief Frees the response struct
@@ -186,7 +211,7 @@ size_t set_payload(response_t *res, const char *payload, size_t len);
  * @param len The length of the payload to add
  * @return size_t The length of the payload after adding
  */
-size_t add_to_Payload(response_t *res, const char *payload, size_t len);
+size_t add_to_payload(response_t *res, const char *payload, size_t len);
 
 /**
  * @brief Sets the status code of the response
