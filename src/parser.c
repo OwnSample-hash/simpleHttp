@@ -63,7 +63,7 @@ request_t *init_request(int cfd) {
 }
 
 void free_request(request_t *req) {
-  free_list(req->headers);
+  free_list(req->headers, NULL);
   free((void *)req->path);
   free((void *)req->body);
   free(req);
@@ -143,7 +143,7 @@ parse_status_t parse_request(request_t *req) {
   req->path = strdup(lines->next->data);
   if (req->path == NULL) {
     log_error("Failed to allocate memory for URI");
-    free_list(lines);
+    free_list(lines, NULL);
     fclose(fp);
     return PARSE_ERR_NO_MEMORY;
   }
@@ -158,7 +158,7 @@ parse_status_t parse_request(request_t *req) {
     char *header_line = strdup(buffer);
     if (header_line == NULL) {
       log_error("Failed to allocate memory for header line");
-      free_list(lines);
+      free_list(lines, NULL);
       fclose(fp);
       return PARSE_ERR_NO_MEMORY;
     }
@@ -168,7 +168,7 @@ parse_status_t parse_request(request_t *req) {
       if (header_pair == NULL) {
         log_error("Failed to allocate memory for header pair");
         free(header_line);
-        free_list(lines);
+        free_list(lines, NULL);
         fclose(fp);
         return PARSE_ERR_NO_MEMORY;
       }
@@ -177,7 +177,7 @@ parse_status_t parse_request(request_t *req) {
       insert_node(&req->headers, header_pair, sizeof(pair_ss_t));
       free(header_pair);
     }
-    free_list(header_node);
+    free_list(header_node, NULL);
     free(header_line);
   }
 
@@ -188,7 +188,7 @@ parse_status_t parse_request(request_t *req) {
   //   temp = temp->next;
   // }
 
-  free_list(lines);
+  free_list(lines, NULL);
   int fd = dup(req->cfd);
   if (fd == -1) {
     log_error("Failed to duplicate file descriptor");

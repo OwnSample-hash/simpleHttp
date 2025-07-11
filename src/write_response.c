@@ -222,7 +222,7 @@ void free_list_response(void *data) {
 }
 
 void free_response(response_t *resp) {
-  free_list_custom(resp->headers, free_list_response);
+  free_list(resp->headers, free_list_response);
   free(resp->buffer);
   free(resp->payload);
   free(resp);

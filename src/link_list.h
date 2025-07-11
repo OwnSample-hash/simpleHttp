@@ -50,19 +50,14 @@ void insert_node(node_t **head, void *data, size_t size);
 /*[[gnu::unused]] void deleteNode(node_t **head, void *key);*/
 
 /**
- * @brief Free a list
- *
- * @param head List to free
- */
-void free_list(node_t *head);
-
-/**
  * @brief Free a list with a custom free function
  *
  * @param head List to free
- * @param freeFunc Function to free the data in each node
+ * @param freeFunc Function to free the data in each node If NULL, will use
+ * free()
  */
-void free_list_custom(node_t *head, void (*freeFunc)(void *));
+void free_list(node_t *head, void (*freeFunc)(void *));
+
 /**
  * @brief Prints the list as strings unused and marked as deprecated
  *

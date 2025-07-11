@@ -36,23 +36,15 @@ void insert_node(node_t **head, void *data, size_t size) {
   temp->next = newNode;
 }
 
-void free_list(node_t *head) {
+void free_list(node_t *head, void (*freeFunc)(void *)) {
   node_t *temp;
   while (head != NULL) {
     temp = head;
     head = head->next;
-    free(temp->data);
-    free(temp);
-  }
-}
-
-void free_list_custom(node_t *head, void (*freeFunc)(void *)) {
-  node_t *temp;
-  while (head != NULL) {
-    temp = head;
-    head = head->next;
-    if (temp->data && freeFunc) {
+    if (freeFunc != NULL) {
       freeFunc(temp->data);
+    } else {
+      free(temp->data);
     }
     free(temp);
   }
