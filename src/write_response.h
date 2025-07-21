@@ -6,46 +6,11 @@
 #ifndef __WRITE_RESPONSE_H__
 #define __WRITE_RESPONSE_H__
 
-#include "bytes.h"
+#include "config.h"
 #include "lua/setup.h"
 #include <stdbool.h>
 #include <stdio.h>
 #include <unistd.h>
-
-/**
- * @def UNUSED
- * @brief Used for supressing unused warnings
- *
- * @def BIN_NAME
- * @brief Containes the a hardcoded bin name and a git commit
- *
- * @def HEADER_BASE
- * @brief The base of response header
- *
- * @def HTTP_EMPTY_LINE
- * @brief And HTTP empty line
- *
- * @def HTTP_EMPTY_LINE_LEN
- * @brief Len of an empty line
- *
- * @def DEFAULT_LEN
- * @brief The default len for a buffer
- */
-
-#define UNUSED(x) (void)(x)
-
-#ifndef BIN_NAME
-#define BIN_NAME "simpleHttpd-" GIT_COMMIT
-#endif
-
-#ifndef HEADER_BASE
-#define HEADER_BASE "HTTP/1.1 %d %s\r\nServer: " BIN_NAME "\r\n"
-#endif
-
-#define HTTP_EMPTY_LINE "\r\n"
-#define HTTP_EMPTY_LINE_LEN 2
-
-#define DEFAULT_LEN 1 * MB_1
 
 /**
  * @brief The header close format string

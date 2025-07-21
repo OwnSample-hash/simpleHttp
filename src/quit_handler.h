@@ -8,12 +8,8 @@
 
 #include <unistd.h>
 
+#include "config.h"
 #include "lua/setup.h"
-
-/**
- * @brief The stack count
- */
-#define STACK_COUNT 64
 
 /**
  * @struct free_stack

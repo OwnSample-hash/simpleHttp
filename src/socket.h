@@ -5,6 +5,7 @@
 
 #ifndef __SOCKET_HTTP_
 #define __SOCKET_HTTP_
+#include "config.h"
 #include <arpa/inet.h>
 #include <netdb.h>
 #include <netinet/in.h>
@@ -28,14 +29,6 @@ typedef struct ssl_conf {
   const char *full_key;
 } ssl_conf_t;
 /**<@copydoc ssl_conf */
-
-/**
- * @def MAX_ADDR_LEN
- * The socket address struct
- * @def MAX_OPEN_SOCKETS
- * The maximum number of open sockets
- */
-#define MAX_ADDR_LEN 12
 
 /**
  * @brief The socket address struct
@@ -67,8 +60,6 @@ typedef struct new_sock {
   const ssl_conf_t *ssl_conf;
 } new_sock_t;
 /**<@copydoc new_sock */
-
-#define MAX_OPEN_SOCKETS 4
 
 /**
  * @brief Open socket struct
