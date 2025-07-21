@@ -12,3 +12,5 @@ simpleHttp.trace
 .gdb_history
 *.trace
 docs/
+*.so
+lua-*

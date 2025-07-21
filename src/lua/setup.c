@@ -1,4 +1,5 @@
 #include "setup.h"
+#include "../plugin/plugin.h"
 #include <lauxlib.h>
 #include <linux/limits.h>
 #include <lua.h>
@@ -100,6 +101,45 @@ int lua_set_keep_alive(lua_State *L) {
   return 0;
 }
 
+int lua_plugin_init(lua_State *L) {
+  luaL_checktype(L, 1, LUA_TSTRING);
+  lua_getglobal(L, "__DRV");
+  luaL_checktype(L, -1, LUA_TLIGHTUSERDATA);
+  driver_t *drv = lua_touserdata(L, -1);
+  if (!drv) {
+    log_fatal("Failed to get drv");
+    return 0;
+  }
+  if (drv->plugin_info) {
+    log_fatal("Plugin info already set, cannot set again");
+    lua_pushliteral(L, "Plugin info already set, cannot set again");
+    lua_error(L);
+  }
+  switch (plugin_system_init(lua_tostring(L, 1), &drv->plugin_info,
+                             &drv->plugin_count)) {
+  case HTTP_PLUGIN_INVALID:
+    log_fatal("Invalid plugin directory");
+    lua_pushliteral(L, "Invalid plugin directory");
+    lua_error(L);
+    break;
+  case HTTP_PLUGIN_ERROR:
+    log_fatal("Error initializing plugin system");
+    lua_pushliteral(L, "Error initializing plugin system");
+    lua_error(L);
+    break;
+  case HTTP_PLUGIN_OK:
+    log_info("Plugin system initialized successfully with %zu plugins",
+             drv->plugin_count);
+    break;
+  default:
+    log_fatal("Unknown error initializing plugin system");
+    lua_pushliteral(L, "Unknown error initializing plugin system");
+    lua_error(L);
+  }
+
+  return 0;
+}
+
 void init(const char *conf_file, driver_t *drv) {
   lua_State *L_conf = luaL_newstate();
   luaL_openlibs(L_conf);
@@ -120,9 +160,25 @@ void init(const char *conf_file, driver_t *drv) {
   LUA_FUNCS_INIT
 #undef REG
 
-  if (luaL_dofile(L_conf, conf_file) != LUA_OK) {
-    log_fatal("Failed to load config file");
-    luaL_error(L_conf, "Error %s\n", lua_tostring(L_conf, -1));
+  const char *lua_code_fmt = "local status, err = xpcall(function() local mod="
+                         "string.gsub('%s', '.lua', ''); require(mod) end, "
+                         "debug.traceback);"
+                         "if not status then error(err) end;";
+  char* lua_code = calloc(strlen(lua_code_fmt) + strlen(conf_file) + 1,
+                          sizeof(char));
+  if (!lua_code) {
+    log_fatal("Failed to allocate memory for lua_code");
+    return;
   }
+  snprintf(lua_code, strlen(lua_code_fmt) + strlen(conf_file) + 1, lua_code_fmt,
+           conf_file);
+  if (luaL_dostring(L_conf, lua_code) != LUA_OK) {
+    const char *error_msg = lua_tostring(L_conf, -1);
+
+    log_error("LUA ERROR with stacktrace");
+    luaL_error(L_conf, "Error: %s\n", error_msg);
+  }
+  free(lua_code);
   lua_close(L_conf);
 }
+// Vim: set expandtab tabstop=2 shiftwidth=2:

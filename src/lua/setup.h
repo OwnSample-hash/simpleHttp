@@ -6,7 +6,9 @@
 #ifndef __HTTP_SETUP__
 #define __HTTP_SETUP__
 
+#define __NO_INIT_FUNC 1
 #include "../log/log.h"
+#include "../plugin/plugin.h"
 #include "../socket.h"
 #include <lua.h>
 
@@ -57,6 +59,8 @@ typedef struct _drv {
   char *server_root;
   char *routes_root;
   keep_alive_t keep_alive;
+  plugin_node_pt plugin_info; /**< Plugin information */
+  size_t plugin_count;        /**< Number of plugins */
 } driver_t;
 
 /**
@@ -77,7 +81,8 @@ void init(const char *conf_file, driver_t *drv);
   REG(set_server_root)                                                         \
   REG(set_routes_root)                                                         \
   REG(set_log_level)                                                           \
-  REG(set_keep_alive)
+  REG(set_keep_alive)                                                          \
+  REG(plugin_init)
 
 /**
  * @def LVLS
@@ -125,9 +130,15 @@ void init(const char *conf_file, driver_t *drv);
  * @brief Set the keep alive settings
  * @param L Lua state
  * @return int
+ *
+ * @fn int lua_set_plugin_init(lua_State *L)
+ * @brief Initialization the plugin system
+ * @param L Lua state
+ * @return int
  */
 #define REG(fn) int lua_##fn(lua_State *L);
 LUA_FUNCS_INIT
 #undef REG
 
 #endif
+// Vim: set expandtab tabstop=2 shiftwidth=2:

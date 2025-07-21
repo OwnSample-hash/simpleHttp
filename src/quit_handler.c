@@ -1,6 +1,7 @@
 #include "quit_handler.h"
 #include "log/log.h"
 #include "lua/lua_.h"
+#include "plugin/plugin.h"
 #include "socket.h"
 #include <lua.h>
 #include <stdlib.h>
@@ -26,6 +27,7 @@ void ctrl_c_h(int sigframe) {
   //   free(drv->socket[i]->addr);
   //   free(drv->socket[i]);
   // }
+  unload_all_plugins(drv->plugin_info);
   free(drv->socket);
   free(drv->routes_root);
   free(drv->server_root);
@@ -37,3 +39,4 @@ void ctrl_c_h(int sigframe) {
   if (sigframe != -1)
     exit(0);
 }
+// Vim: set expandtab tabstop=2 shiftwidth=2:

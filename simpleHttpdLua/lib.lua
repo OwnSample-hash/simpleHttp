@@ -67,6 +67,10 @@ function set_routes_root(root) end
 ---@param cfg KeepAliveCfg
 function set_keep_alive(cfg) end
 
+--- C function for initializing the plugin system
+--- @param dir string
+function plugin_init(dir) end
+
 ---@type number
 AF_INET = 2
 

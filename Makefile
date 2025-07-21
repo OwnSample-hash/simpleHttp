@@ -10,13 +10,20 @@ LD_U = ${shell echo ${LD}-LD | sed 's/.*/\U&/'}
 
 _MAKE_DIR = make.dir
 SRC_DIR = src
+PL_DIR = plugins
 BUILD_DIR = ${_MAKE_DIR}/build
 
 CSRCS = $(shell find ${SRC_DIR} -type f -name "*.c")
 
 OBJS = $(patsubst $(SRC_DIR)/%.c, $(BUILD_DIR)/%.o, $(CSRCS))
 
-all: ${BIN}
+PLUGINS = $(shell find ${PL_DIR} -type f -name "Makefile" -exec dirname {} \;)
+PLUGINS_INSTALL_PREFIX = $(shell realpath plugin_install)
+
+@chain: plugins ${BIN}
+include chains.mk
+
+all: @chain
 	@printf "  Done bulding\n"
 
 restore:
@@ -41,6 +48,18 @@ prolog:
 	@echo BUILD_DIR=${BUILD_DIR}
 	@echo FULL_BD=$(patsubst $(SRC_DIR)%, $(BUILD_DIR)%, $(shell find $(SRC_DIR) -type d))
 	@echo OBJS=${OBJS}
+	@echo PLUGINS=${PLUGINS}
+	@echo PLUGINS_INSTALL_PREFIX=${PLUGINS_INSTALL_PREFIX}
+	@echo
+	@echo "Building ${BIN} with plugins support"
+	@echo "Plugins found:"
+	@for plugin in ${PLUGINS}; do \
+		if [ -f $$plugin/Makefile ]; then \
+			$(MAKE) -C $$plugin PATH_PREFIX=$$plugin PLUGINS_INSTALL_PREFIX=${PLUGINS_INSTALL_PREFIX} prolog; \
+		else \
+			printf "  %-9s %s\n" "SKIP" "$$plugin"; \
+		fi; \
+	done
 	@echo
 
 
@@ -56,7 +75,26 @@ $(BIN): $(OBJS)
 	@printf "  %s  %s\n" $(LD_U) ${BIN}
 	@$(LD) $(OBJS) $(LDFLAGS) -o $(BIN)
 
+.PHONY: plugins
+plugins:
+	@printf "  %-9s %s\n" "MAKE" "plugins"
+	@for plugin in ${PLUGINS}; do \
+		if [ -f $$plugin/Makefile ]; then \
+			$(MAKE) -C $$plugin PATH_PREFIX=$$plugin PLUGINS_INSTALL_PREFIX=${PLUGINS_INSTALL_PREFIX} install; \
+		else \
+			printf "  %-9s %s\n" "SKIP" "$$plugin"; \
+		fi; \
+	done
+
 clean:
 	@printf "  %-9s %s\n" "RM" "${LUA_VER} ${LUA_VER}.tar.gz ${BIN}"
 	@rm -rf ${BUILD_DIR} ${LUA_VER} ${LUA_VER}.tar.gz ${BIN}
+	@printf "  %-9s %s\n" "RM" "plugins"
+	@for plugin in ${PLUGINS}; do \
+		if [ -f $$plugin/Makefile ]; then \
+			$(MAKE) -C $$plugin clean; \
+		else \
+			printf "  %-9s %s\n" "SKIP" "$$plugin"; \
+		fi; \
+	done
 
