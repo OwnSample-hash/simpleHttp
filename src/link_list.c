@@ -25,6 +25,10 @@ node_t *create_node(void *data, size_t size) {
 
 void insert_node(node_t **head, void *data, size_t size) {
   node_t *newNode = create_node(data, size);
+  if (newNode == NULL) {
+    log_error("Failed to create new node");
+    return;
+  }
   if (*head == NULL) {
     *head = newNode;
     return;
