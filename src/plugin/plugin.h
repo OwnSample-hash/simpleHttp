@@ -30,10 +30,33 @@ typedef struct http_plugin {
 } http_plugin_t;
 /**<@copydoc http_plugin*/
 
+/**
+ * @class plugin_search_info
+ * @brief Structure for searching plugins.
+ * This structure is used to specify the way for searching plugins
+ * by name, path, or index.
+ *
+ * @var plugin_search_info::data
+ * Pointer to the data used for searching.
+ * This can be a string for name/path searches or an size_t for index searches.
+ *
+ */
+typedef struct plugin_search_info {
+  enum {
+    PLUGIN_SEARCH_BY_NAME = 0,
+    PLUGIN_SEARCH_BY_PATH,
+    PLUGIN_SEARCH_BY_IDX
+  } type; /**< Type of search: by name, path or index  */
+  const void *data;
+} plugin_search_info_t;
+/**<@copydoc plugin_search_info*/
+
 typedef node_t *plugin_node_pt; /**< Node type for linked list of plugins */
 
-typedef plugin_status_t (*plugin_init_fn)(plugin_info_t *);
-typedef plugin_init_fn plugin_shutdown_fn;
+typedef plugin_status_t (*plugin_init_fn)(
+    plugin_info_t *); /**< Function type for plugin initialization */
+typedef plugin_init_fn
+    plugin_shutdown_fn; /**< Function type for plugin shutdown */
 
 /**
  * @brief Initializes the plugin system.
@@ -51,19 +74,22 @@ plugin_status_t plugin_system_init(const char *directory,
 /**
  * @brief Loads a plugin by name.
  *
- * @param name Name of the plugin to load.
- * @return http_plugin_t* Pointer to the loaded plugin structure, or NULL if
+ * @param plugins Pointer to the linked list of loaded plugins.
+ * @param path Path of the plugin to load.
+ * @return plugin_status_t Status of the load operation.
  */
-http_plugin_t *load_plugin(const char *name);
+plugin_status_t load_plugin(plugin_node_pt plugins, const char *path);
 
 /**
  * @brief Unloads a plugin.
  *
  * @param plugin Pointer to the http_plugin_t structure representing the plugin
  * to unload.
+ * @param search_info Pointer to the plugin_search_info_t structure
  * @return plugin_status_t Status of the unload operation.
  */
-plugin_status_t unload_plugin(plugin_node_pt plugin);
+plugin_status_t unload_plugin(plugin_node_pt plugin,
+                              const plugin_search_info_t *search_info);
 
 /**
  * @brief Cleans up the plugin system.
@@ -79,9 +105,11 @@ plugin_status_t unload_all_plugins(plugin_node_pt plugins);
  * @brief Retrieves information about a plugin.
  *
  * @param plugin Pointer to the http_plugin_t structure representing the plugin.
+ * @param search_info Pointer to the plugin_search_info_t structure containing
  * @return const plugin_info_t* Pointer to the plugin information structure.
  */
-const plugin_info_t *get_plugin_info(const http_plugin_t *plugin);
+const plugin_info_t *get_plugin_info(const plugin_node_pt plugin,
+                                     const plugin_search_info_t *search_info);
 
 /**
  * @brief Triggers an event in the plugin system.
@@ -91,15 +119,18 @@ const plugin_info_t *get_plugin_info(const http_plugin_t *plugin);
  * @param event_name Name of the event to trigger.
  * @return plugin_status_t Status of the event trigger operation.
  */
-plugin_status_t trigger_event(const http_plugin_t *plugins,
+plugin_status_t trigger_event(const plugin_node_pt plugins,
                               const char *event_name, ...);
 
 /**
  *@brief Checks if a plugin is loaded.
  *
  * @param plugin Pointer to the http_plugin_t structure representing the plugin.
+ * @param search_info Pointer to the plugin_search_info_t structure containing
  * @return int Returns 1 if the plugin is loaded, 0 otherwise.
+ * When searching by index, on failure, it returns the size of the plugins list.
  */
-int is_plugin_loaded(const http_plugin_t *plugin);
+int is_plugin_loaded(const plugin_node_pt plugin,
+                     const plugin_search_info_t *search_info);
 #endif // __HTTP_PLUGIN_H__
 // Vim: set expandtab tabstop=2 shiftwidth=2:

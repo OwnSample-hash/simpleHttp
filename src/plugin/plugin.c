@@ -123,13 +123,89 @@ void free_plugin(void *data) {
     if (status != HTTP_PLUGIN_OK) {
       log_error("Plugin shutdown failed with status: %d", status);
     }
-
     dlclose(plugin->handle);
   }
   if (plugin->info.file != NULL) {
     free((void *)plugin->info.file);
   }
   free(plugin);
+}
+
+plugin_status_t unload_plugin(plugin_node_pt plugin,
+                              const plugin_search_info_t *search_info) {
+  if (plugin == NULL || search_info == NULL) {
+    log_error("Invalid plugin or search info provided for unload");
+    return HTTP_PLUGIN_INVALID;
+  }
+  plugin_node_pt searched_plugin = NULL;
+  switch (search_info->type) {
+  case PLUGIN_SEARCH_BY_NAME: {
+    const char *name = (const char *)search_info->data;
+    if (name == NULL || strlen(name) == 0) {
+      log_error("Invalid plugin name provided for search");
+      return HTTP_PLUGIN_INVALID;
+    }
+    plugin_node_pt pl = plugin;
+    while (pl != NULL) {
+      http_plugin_t *p = (http_plugin_t *)pl->data;
+      if (p != NULL && p->info.name != NULL &&
+          strcmp(p->info.name, name) == 0) {
+        searched_plugin = pl;
+        break;
+      }
+      pl = pl->next;
+    }
+    return HTTP_PLUGIN_NOT_FOUND;
+  }
+  case PLUGIN_SEARCH_BY_PATH: {
+    const char *path = (const char *)search_info->data;
+    if (path == NULL || strlen(path) == 0) {
+      log_error("Invalid plugin path provided for search");
+      return HTTP_PLUGIN_INVALID;
+    }
+    plugin_node_pt pl = plugin;
+    while (pl != NULL) {
+      http_plugin_t *p = (http_plugin_t *)pl->data;
+      if (p != NULL && p->info.file != NULL &&
+          strcmp(p->info.file, path) == 0) {
+        searched_plugin = pl;
+        break;
+      }
+      pl = pl->next;
+    }
+    return HTTP_PLUGIN_NOT_FOUND;
+  }
+  case PLUGIN_SEARCH_BY_IDX: {
+    size_t idx = *(const size_t *)search_info->data;
+    if (idx < 0) {
+      log_error("Invalid plugin index provided for search");
+      return 0;
+    }
+    plugin_node_pt pl = plugin;
+    size_t current_idx = 0;
+    while (pl != NULL) {
+      if (current_idx == idx) {
+        searched_plugin = pl;
+        break;
+      }
+      pl = pl->next;
+      current_idx++;
+    }
+    return HTTP_PLUGIN_NOT_FOUND;
+  }
+  }
+  if (searched_plugin == NULL) {
+    log_error("Plugin not found for unload operation");
+    return HTTP_PLUGIN_NOT_FOUND;
+  }
+  if (plugin == searched_plugin) {
+    log_trace("head is same as searched plugin");
+  }
+  http_plugin_t *p = (http_plugin_t *)searched_plugin->data;
+  free_plugin(p);
+  if (searched_plugin->prev != NULL) {
+    searched_plugin->prev->next = searched_plugin->next;
+  }
 }
 
 plugin_status_t unload_all_plugins(plugin_node_pt plugins) {
@@ -139,5 +215,130 @@ plugin_status_t unload_all_plugins(plugin_node_pt plugins) {
   }
   free_list(plugins, free_plugin);
   return HTTP_PLUGIN_OK;
+}
+
+const plugin_info_t *get_plugin_info(const plugin_node_pt plugin,
+                                     const plugin_search_info_t *search_info) {
+
+  if (plugin == NULL || search_info == NULL) {
+    log_error("Invalid plugin or search info provided");
+    return 0;
+  }
+  switch (search_info->type) {
+  case PLUGIN_SEARCH_BY_NAME: {
+    const char *name = (const char *)search_info->data;
+    if (name == NULL || strlen(name) == 0) {
+      log_error("Invalid plugin name provided for search");
+      return 0;
+    }
+    plugin_node_pt pl = plugin;
+    while (pl != NULL) {
+      http_plugin_t *p = (http_plugin_t *)pl->data;
+      if (p != NULL && p->info.name != NULL &&
+          strcmp(p->info.name, name) == 0) {
+        return &p->info; // Plugin found by name
+      }
+      pl = pl->next;
+    }
+    return 0; // Plugin not found by name
+  }
+  case PLUGIN_SEARCH_BY_PATH: {
+    const char *path = (const char *)search_info->data;
+    if (path == NULL || strlen(path) == 0) {
+      log_error("Invalid plugin path provided for search");
+      return 0;
+    }
+    plugin_node_pt pl = plugin;
+    while (pl != NULL) {
+      http_plugin_t *p = (http_plugin_t *)pl->data;
+      if (p != NULL && p->info.file != NULL &&
+          strcmp(p->info.file, path) == 0) {
+        return &p->info;
+      }
+      pl = pl->next;
+    }
+  }
+  case PLUGIN_SEARCH_BY_IDX: {
+    size_t idx = *(const size_t *)search_info->data;
+    if (idx < 0) {
+      log_error("Invalid plugin index provided for search");
+      return 0;
+    }
+    plugin_node_pt pl = plugin;
+    size_t current_idx = 0;
+    while (pl != NULL) {
+      if (current_idx == idx) {
+        http_plugin_t *p = (http_plugin_t *)pl->data;
+        if (p != NULL && p->info.file != NULL) {
+          return &p->info;
+        }
+      }
+      pl = pl->next;
+      current_idx++;
+    }
+  }
+  }
+  log_error("Plugin not found for the provided search info");
+  return NULL; // Plugin not found
+}
+
+int is_plugin_loaded(const plugin_node_pt plugin,
+                     const plugin_search_info_t *search_info) {
+  if (plugin == NULL || search_info == NULL) {
+    log_error("Invalid plugin or search info provided");
+    return 0;
+  }
+  switch (search_info->type) {
+  case PLUGIN_SEARCH_BY_NAME: {
+    const char *name = (const char *)search_info->data;
+    if (name == NULL || strlen(name) == 0) {
+      log_error("Invalid plugin name provided for search");
+      return 0;
+    }
+    plugin_node_pt pl = plugin;
+    while (pl != NULL) {
+      http_plugin_t *p = (http_plugin_t *)pl->data;
+      if (p != NULL && p->info.name != NULL &&
+          strcmp(p->info.name, name) == 0) {
+        return 1; // Plugin found by name
+      }
+      pl = pl->next;
+    }
+    return 0; // Plugin not found by name
+  }
+  case PLUGIN_SEARCH_BY_PATH: {
+    const char *path = (const char *)search_info->data;
+    if (path == NULL || strlen(path) == 0) {
+      log_error("Invalid plugin path provided for search");
+      return 0;
+    }
+    plugin_node_pt pl = plugin;
+    while (pl != NULL) {
+      http_plugin_t *p = (http_plugin_t *)pl->data;
+      if (p != NULL && p->info.file != NULL &&
+          strcmp(p->info.file, path) == 0) {
+        return 1; // Plugin found by path
+      }
+      pl = pl->next;
+    }
+  }
+  case PLUGIN_SEARCH_BY_IDX: {
+    size_t idx = *(const size_t *)search_info->data;
+    if (idx < 0) {
+      log_error("Invalid plugin index provided for search");
+      return 0;
+    }
+    plugin_node_pt pl = plugin;
+    size_t current_idx = 0;
+    while (pl != NULL) {
+      if (current_idx == idx) {
+        return 1; // Plugin found by index
+      }
+      pl = pl->next;
+      current_idx++;
+    }
+    return current_idx; // Plugin not found by index
+  }
+  }
 }
 // Vim: set expandtab tabstop=2 shiftwidth=2:
