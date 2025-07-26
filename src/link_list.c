@@ -37,6 +37,7 @@ void insert_node(node_t **head, void *data, size_t size) {
   while (temp->next != NULL) {
     temp = temp->next;
   }
+  newNode->prev = temp; // Set the previous pointer
   temp->next = newNode;
 }
 

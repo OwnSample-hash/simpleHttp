@@ -26,6 +26,7 @@ typedef struct node {
   size_t size;
   void *data;
   struct node *next;
+  struct node *prev; /**< Pointer to the previous node, if needed */
 } node_t;
 /**<@copydoc node*/
 
