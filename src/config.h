@@ -1,3 +1,8 @@
+/**
+ * @file
+ * @brief Header file for configuration.
+ */
+
 #ifndef __HTTP_CONFIG_H__
 #define __HTTP_CONFIG_H__
 
