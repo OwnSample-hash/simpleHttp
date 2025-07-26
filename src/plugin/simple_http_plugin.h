@@ -1,3 +1,8 @@
+/**
+ * @file
+ * @brief Public header file for the Simple HTTP Plugin System.
+ */
+
 #ifndef __HTTP_SIMPLE_HTTP_PLUGIN_H__
 #define __HTTP_SIMPLE_HTTP_PLUGIN_H__
 
@@ -52,6 +57,13 @@ typedef struct plugin_info {
 } plugin_info_t;
 /**<@copydoc plugin_info */
 
+/**
+ * @brief Initialize the plugin.
+ *
+ * @param info Pointer to the plugin_info_t structure containing plugin
+ * information.
+ * @return plugin_status_t Status of the initialization operation.
+ */
 extern plugin_status_t plugin_init(plugin_info_t *info);
 
 /**
@@ -60,6 +72,17 @@ extern plugin_status_t plugin_init(plugin_info_t *info);
  * @return
  */
 extern plugin_status_t plugin_shutdown(plugin_info_t *info);
+
+/**
+ * @def PLUGIN_REGISTER
+ * @brief Macro to register a plugin.
+ * This macro initializes the plugin_info_t structure with the provided
+ * information.
+ *
+ * @def PLUGIN_UNREGISTER
+ * @brief Macro to unregister a plugin.
+ *
+ */
 
 #define PLUGIN_REGISTER(info, pl_name, pl_version, pl_author, pl_description,  \
                         pl_flags, pl_priority)                                 \
