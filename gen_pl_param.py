@@ -28,6 +28,22 @@ fmt_arg = "        {.type = TYPE_%s, .size = sizeof(%s), .name = \"%s\"},\n"
 fmt_last_arg = "        {.type = TYPE_last, .size = sizeof(void), .name = \"last\"},"
 
 
+def check_and_fix_def_line(it: iter, line: str) -> str:
+    """
+    Check and fix the define line if it is not in its a multiline format.
+    """
+    if '(' in line and ')' in line:
+        return line
+    while line.endswith('\\\n'):
+        next_line = next(it, None)
+        if next_line is None:
+            print("Error: Unexpected end of file while processing define line.")
+            sys.exit(1)
+        line = line[:-2].strip() + next_line.strip()
+    print(f"Fixed define line: {line}")
+    return line
+
+
 def check_plugin_sync(lines: list[str]) -> bool:
     """
     Check if the plugin events and defines are in sync.
@@ -50,6 +66,7 @@ def check_plugin_sync(lines: list[str]) -> bool:
                 if line is None or line.strip() == define_end:
                     in_define = False
                 elif line.strip() and not line.startswith("//"):
+                    line = check_and_fix_def_line(it, line)
                     define_vars.append(line.split(',')[1].strip().upper())
                     args = [tuple(arg.replace(")", "").replace("\\", "")
                                   .strip().split(' ')) for arg in line
