@@ -20,7 +20,7 @@ OBJS = $(patsubst $(SRC_DIR)/%.c, $(BUILD_DIR)/%.o, $(CSRCS))
 PLUGINS = $(shell find ${PL_DIR} -type f -name "Makefile" -exec dirname {} \;)
 PLUGINS_INSTALL_PREFIX = $(shell realpath plugin_install)
 
-@chain: plugins ${BIN}
+@chain: generate_plugin_params plugins ${BIN}
 include chains.mk
 
 all: @chain
@@ -98,3 +98,6 @@ clean:
 		fi; \
 	done
 
+generate_plugin_params:
+	@printf "  %-9s %s\n" "GEN" "plugin parameters"
+	@./gen_pl_param.py src/plugin/simple_http_plugin.h src/plugin/plugin_params.h

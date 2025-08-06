@@ -6,6 +6,12 @@
 #ifndef __HTTP_SIMPLE_HTTP_PLUGIN_H__
 #define __HTTP_SIMPLE_HTTP_PLUGIN_H__
 
+#ifndef _PLUGIN_
+#include "../log/log.h"
+#else
+extern log_log_fn log_log;
+#endif
+#include <dlfcn.h>
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
@@ -19,6 +25,31 @@ typedef enum {
   HTTP_PLUGIN_ERROR = -1,
   HTTP_PLUGIN_OK = 0,
 } plugin_status_t;
+
+/**
+ * @brief Enumeration for plugin events.
+ * This enumeration defines the events that plugins can listen to.
+ * The values are used as indices in the plugin_events_t structure.
+ */
+typedef enum plugin_event {
+  EVENT_PRE_ON_INCOMING_CLIENT = sizeof(void *) * 0,
+  EVENT_POST_ON_INCOMING_CLIENT = sizeof(void *) * 1,
+} plugin_event_t;
+
+#define EVENTS                                                                 \
+  PL(plugin_status_t, event_pre_on_incoming_client, int client_fd)             \
+  PL(plugin_status_t, event_post_on_incoming_client, int client_fd)
+// EVENTS ENDS
+
+#define PL(ret, name, ...) typedef ret (*name##_fn)(__VA_ARGS__);
+EVENTS
+#undef PL
+
+typedef struct {
+#define PL(ret, name, ...) name##_fn name;
+  EVENTS
+#undef PL
+} plugin_events_t;
 
 /**
  * @struct plugin_info
@@ -52,10 +83,15 @@ typedef struct plugin_info {
     PLUGIN_FLAG_NONE = 0x00,     /**< No flags set */
     PLUGIN_FLAG_INTERNAL = 0x01, /**< Internal plugin type */
   } flags;
-  int priority; /**< Priority of the plugin in events */
-  bool enabled; /**< Whether the plugin is enabled or not */
+  int priority;           /**< Priority of the plugin in events */
+  bool enabled;           /**< Whether the plugin is enabled or not */
+  log_log_fn log_log;     /**< Pointer to the logging function */
+  plugin_events_t events; /**< Events associated with the plugin */
 } plugin_info_t;
 /**<@copydoc plugin_info */
+
+static const plugin_info_t *plugin_info =
+    NULL; /**< Pointer to the plugin information structure */
 
 /**
  * @brief Initialize the plugin.
@@ -84,16 +120,31 @@ extern plugin_status_t plugin_shutdown(plugin_info_t *info);
  *
  */
 
+// log_log = info->log_log;
+// log_log = dlsym(RTLD_DEFAULT, "log_log");                                  \
+// if (log_log == NULL) {                                                     \
+//   fprintf(stderr, "Failed to find log_log function: %s", dlerror());       \
+//   return HTTP_PLUGIN_ERROR;                                                \
+// }
 #define PLUGIN_REGISTER(info, pl_name, pl_version, pl_author, pl_description,  \
                         pl_flags, pl_priority)                                 \
   do {                                                                         \
+    plugin_info = info;                                                        \
     info->name = strdup(pl_name);                                              \
     info->version = strdup(pl_version);                                        \
     info->author = strdup(pl_author);                                          \
     info->description = strdup(pl_description);                                \
     info->flags = pl_flags;                                                    \
     info->priority = pl_priority;                                              \
+    if (info->name == NULL || info->version == NULL || info->author == NULL || \
+        info->description == NULL) {                                           \
+      log_error("Failed to allocate memory for plugin information");           \
+      return HTTP_PLUGIN_ERROR;                                                \
+    }                                                                          \
+    info->enabled = true;                                                      \
+    log_info("Plugin \"%s\" registered successfully", info->name);             \
   } while (0)
+// memset(&info->events, 0, sizeof(plugin_events_t));
 
 #define PLUGIN_UNREGISTER(info)                                                \
   do {                                                                         \
