@@ -1,26 +1,29 @@
-BIN = simpleHttpd
+BIN:= simpleHttpd
 
-CC=clang
-LD=clang
-CFLAGS=-ggdb -DBIN_NAME=\"${BIN}\" -DGIT_COMMIT=\"$(shell git rev-parse --short HEAD)\" -DLOG_USE_COLOR=1 -Wextra -Wall
-LDFLAGS=-lmagic -llua -lm -ldl
+CC:=clang
+LD:=clang
+CFLAGS:=-ggdb -DBIN_NAME=\"${BIN}\" -DGIT_COMMIT=\"$(shell git rev-parse --short HEAD)\" -DLOG_USE_COLOR=1 -Wextra -Wall
+LDFLAGS:=-lmagic -llua -lm -ldl
 
-CC_U = ${shell echo ${CC}-CC | sed 's/.*/\U&/'}
-LD_U = ${shell echo ${LD}-LD | sed 's/.*/\U&/'}
+CC_U:= ${shell echo ${CC}-CC | sed 's/.*/\U&/'}
+LD_U:= ${shell echo ${LD}-LD | sed 's/.*/\U&/'}
 
 _MAKE_DIR = make.dir
 SRC_DIR = src
 PL_DIR = plugins
 BUILD_DIR = ${_MAKE_DIR}/build
+PRE_MAKE_DIRS = ${_MAKE_DIR}/pre
 
-CSRCS = $(shell find ${SRC_DIR} -type f -name "*.c")
+CSRCS := $(shell find ${SRC_DIR} -type f -name "*.c")
+PRE_CSRCS:= $(shell find ${SRC_DIR} -type f -name "*.c.sh")
+CSRCS := $(CSRCS) $(shell for f in $(PRE_CSRCS); do $$f; done)
 
 OBJS = $(patsubst $(SRC_DIR)/%.c, $(BUILD_DIR)/%.o, $(CSRCS))
 
 PLUGINS = $(shell find ${PL_DIR} -type f -name "Makefile" -exec dirname {} \;)
 PLUGINS_INSTALL_PREFIX = $(shell realpath plugin_install)
 
-@chain: generate_plugin_params plugins ${BIN}
+@chain: plugins ${BIN}
 include chains.mk
 
 all: @chain
@@ -47,6 +50,8 @@ prolog:
 	@echo BIN=${BIN}
 	@echo BUILD_DIR=${BUILD_DIR}
 	@echo FULL_BD=$(patsubst $(SRC_DIR)%, $(BUILD_DIR)%, $(shell find $(SRC_DIR) -type d))
+	@echo PRE_CSRCS=${PRE_CSRCS}
+	@echo CSRCS=${CSRCS}
 	@echo OBJS=${OBJS}
 	@echo PLUGINS=${PLUGINS}
 	@echo PLUGINS_INSTALL_PREFIX=${PLUGINS_INSTALL_PREFIX}
