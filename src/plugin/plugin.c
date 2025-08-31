@@ -75,15 +75,19 @@ plugin_status_t plugin_system_init(const char *directory,
   }
 
   plugin_node_pt current = *plugins;
+  bool failed = false;
   while (current != NULL) {
     http_plugin_t *plugin = (http_plugin_t *)current->data;
     if (plugin == NULL || plugin->info.file == NULL) {
       log_error("Invalid plugin data found in the list");
-      continue;
+      current = current->next;
+      failed = true;
     }
-    plugin->handle = dlopen(plugin->info.file, RTLD_NOW | RTLD_LOCAL);
+    plugin->handle = dlopen(plugin->info.file, RTLD_LAZY /*| RTLD_LOCAL*/);
     if (plugin->handle == NULL) {
-      log_error("Failed to load plugin %s: %s", plugin->info.file, dlerror());
+      log_error("Failed to load plugin %s", dlerror());
+      current = current->next;
+      failed = true;
       continue;
     }
     plugin_init_fn init_fn =
@@ -92,21 +96,28 @@ plugin_status_t plugin_system_init(const char *directory,
       log_error("Failed to find plugin_init function in %s: %s",
                 plugin->info.file, dlerror());
       dlclose(plugin->handle);
+      current = current->next;
+      failed = true;
       continue;
     }
+    plugin->info.log_log = log_log;
     plugin_status_t status = init_fn(&plugin->info);
     if (status != HTTP_PLUGIN_OK) {
       log_error("Plugin %s initialization failed with status: %d",
                 plugin->info.file, status);
       dlclose(plugin->handle);
+      current = current->next;
+      failed = true;
       continue;
     }
     log_info("Plugin found: \"%s\" at %s", plugin->info.name,
              plugin->info.file);
+#define PL(ret, name, ...)                                                     \
+  log_trace("Plugin event (%s) has ptr: %p", #name, plugin->info.events.name);
     current = current->next;
   }
 
-  return HTTP_PLUGIN_OK;
+  return failed ? HTTP_PLUGIN_ERROR : HTTP_PLUGIN_OK;
 }
 
 void free_plugin(void *data) {

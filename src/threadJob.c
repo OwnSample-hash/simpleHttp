@@ -3,6 +3,8 @@
 #include "log/log.h"
 #include "lua/setup.h"
 #include "parser.h"
+#include "plugin/plugin.h"
+#include "plugin/simple_http_plugin.h"
 #include "quit_handler.h"
 #include <netinet/in.h>
 #include <signal.h>
@@ -75,6 +77,7 @@ void threadJob(int client_sockfd, const char *server,
       log_info("END OF REQUEST");
     }
   } else {
+    trigger_event(g_plugin, event_pre_on_incoming_client, client_sockfd);
     request_t *req = init_request(client_sockfd);
     if (req == NULL) {
       log_fatal("Failed to allocate request");
@@ -84,6 +87,7 @@ void threadJob(int client_sockfd, const char *server,
     parse_request(req);
     process_request(req, server, &local_keep_alive);
     free_request(req);
+    trigger_event(g_plugin, event_post_on_incoming_client, client_sockfd);
   }
   if (close(client_sockfd)) {
     perror("close");

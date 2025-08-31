@@ -16,6 +16,8 @@ extern log_log_fn log_log;
 #include <stdlib.h>
 #include <string.h>
 
+typedef const char *string_t; //< Type definition for string
+
 /**
  * @brief Enumeration for plugin status codes.
  */
@@ -26,27 +28,35 @@ typedef enum {
   HTTP_PLUGIN_OK = 0,
 } plugin_status_t;
 
+#define EVENTS                                                                 \
+  PL(plugin_status_t, pre_on_incoming_client, int)                             \
+  PL(plugin_status_t, post_on_incoming_client, int)                            \
+  PL(plugin_status_t, test_types, int, uint, float, double, string_t)
+// EVENTS ENDS
+
+typedef enum {
+#define PL(ret, name, ...) EVENT_COUNTER_##name,
+  EVENTS
+#undef PL
+} plugin_event_counter_t; /**< Counter for plugin events */
+
 /**
  * @brief Enumeration for plugin events.
  * This enumeration defines the events that plugins can listen to.
  * The values are used as indices in the plugin_events_t structure.
  */
 typedef enum plugin_event {
-  EVENT_PRE_ON_INCOMING_CLIENT = sizeof(void *) * 0,
-  EVENT_POST_ON_INCOMING_CLIENT = sizeof(void *) * 1,
+#define PL(ret, name, ...) event_##name = sizeof(void *) * EVENT_COUNTER_##name,
+  EVENTS
+#undef PL
 } plugin_event_t;
 
-#define EVENTS                                                                 \
-  PL(plugin_status_t, event_pre_on_incoming_client, int client_fd)             \
-  PL(plugin_status_t, event_post_on_incoming_client, int client_fd)
-// EVENTS ENDS
-
-#define PL(ret, name, ...) typedef ret (*name##_fn)(__VA_ARGS__);
+#define PL(ret, name, ...) typedef ret (*event_##name##_fn)(__VA_ARGS__);
 EVENTS
 #undef PL
 
 typedef struct {
-#define PL(ret, name, ...) name##_fn name;
+#define PL(ret, name, ...) event_##name##_fn name;
   EVENTS
 #undef PL
 } plugin_events_t;

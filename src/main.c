@@ -3,6 +3,7 @@
 #include "log/log.h"
 #include "lua/lua_.h"
 #include "lua/setup.h"
+#include "plugin/plugin.h"
 #include "quit_handler.h"
 #include "socket.h"
 #include "threadJob.h"
@@ -16,6 +17,7 @@
 #define GIT_COMMIT "none-given"
 #endif
 
+plugin_node_pt g_plugin;
 driver_t *drv;
 
 int main(int argc, char **argv) {
@@ -37,6 +39,16 @@ int main(int argc, char **argv) {
     log_error("Idk");
     return 1;
   }
+
+  if (drv->socket_count <= 0) {
+    log_error("No sockets to listen on");
+    return 1;
+  }
+  if (drv->routes_root == NULL || drv->server_root == NULL) {
+    log_error("No routes or server root specified");
+    return 1;
+  }
+  g_plugin = drv->plugins;
 
   int fds[MAX_OPEN_SOCKETS];
   for (int i = 0; i < drv->socket_count; i++)

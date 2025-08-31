@@ -11,6 +11,7 @@
 
 #include "../link_list.h"
 #include "simple_http_plugin.h"
+#include "stdint.h"
 #include <dlfcn.h>
 
 /**
@@ -52,6 +53,9 @@ typedef struct plugin_search_info {
 /**<@copydoc plugin_search_info*/
 
 typedef node_t *plugin_node_pt; /**< Node type for linked list of plugins */
+
+extern plugin_node_pt
+    g_plugin; /**< Global variable for the currently loaded plugin */
 
 typedef plugin_status_t (*plugin_init_fn)(
     plugin_info_t *); /**< Function type for plugin initialization */
@@ -120,7 +124,7 @@ const plugin_info_t *get_plugin_info(const plugin_node_pt plugin,
  * @return plugin_status_t Status of the event trigger operation.
  */
 plugin_status_t trigger_event(const plugin_node_pt plugins,
-                              const char *event_name, ...);
+                              plugin_event_t event, ...);
 
 /**
  *@brief Checks if a plugin is loaded.

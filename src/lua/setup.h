@@ -59,8 +59,8 @@ typedef struct _drv {
   char *server_root;
   char *routes_root;
   keep_alive_t keep_alive;
-  plugin_node_pt plugin_info; /**< Plugin information */
-  size_t plugin_count;        /**< Number of plugins */
+  plugin_node_pt plugins; /**< Plugin information */
+  size_t plugin_count;    /**< Number of plugins */
 } driver_t;
 
 /**
