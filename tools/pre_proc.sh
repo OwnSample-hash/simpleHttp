@@ -4,7 +4,7 @@ PP_PREFIX="make.dir/pre_proc"
 mkdir -p "$PP_PREFIX"
 
 SRC_LINE_FN_TMPL="event_fn(%s);"
-SRC_LINE_ARG_TMPL="va_arg(args, %s), "
+SRC_LINE_ARG_TMPL="va_arg(ap, %s), "
 
 IN_FILE="$1"
 IN_POINT="$2"
