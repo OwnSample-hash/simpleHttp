@@ -4,7 +4,7 @@ CC=clang
 LD=clang
 AR=ar
 CFLAGS=-ggdb -DBIN_NAME=\"${BIN}\" -DGIT_COMMIT=\"$(shell git rev-parse --short HEAD)\" \
-       -DLOG_USE_COLOR=1 -Wextra -Wall 
+       -DLOG_USE_COLOR=1 -Wextra -Wall -fPIC
 LDFLAGS=-lmagic -llua -lm -ldl -shared
 ARFLAGS=crs
 
