@@ -30,7 +30,7 @@ fmt_last_arg = "        {.type = TYPE_last, .size = sizeof(void), .name = \"last
 
 def check_and_fix_def_line(it: iter, line: str) -> str:
     """
-    Check and fix the define line if it is not in its a multiline format.
+    Check and fix the define line if it is in multiline format.
     """
     if '(' in line and ')' in line:
         return line
