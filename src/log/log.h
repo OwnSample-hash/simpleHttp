@@ -1,9 +1,7 @@
 /**
  * @file
  * @brief Loggin system
- */
-
-/**
+ *
  * Copyright (c) 2020 rxi
  *
  * This library is free software; you can redistribute it and/or modify it
@@ -100,14 +98,27 @@ typedef enum _LVLS {
  *
  */
 #ifndef NO_LOG_AT_ALL
-
+#ifndef _PLUGIN_
 #define log_trace(...) log_log(LOG_TRACE, __FILE__, __LINE__, __VA_ARGS__)
 #define log_debug(...) log_log(LOG_DEBUG, __FILE__, __LINE__, __VA_ARGS__)
 #define log_info(...) log_log(LOG_INFO, __FILE__, __LINE__, __VA_ARGS__)
 #define log_warn(...) log_log(LOG_WARN, __FILE__, __LINE__, __VA_ARGS__)
 #define log_error(...) log_log(LOG_ERROR, __FILE__, __LINE__, __VA_ARGS__)
 #define log_fatal(...) log_log(LOG_FATAL, __FILE__, __LINE__, __VA_ARGS__)
-
+#else
+#define log_trace(...)                                                         \
+  plugin_info->log_log(LOG_TRACE, __FILE__, __LINE__, __VA_ARGS__)
+#define log_debug(...)                                                         \
+  plugin_info->log_log(LOG_DEBUG, __FILE__, __LINE__, __VA_ARGS__)
+#define log_info(...)                                                          \
+  plugin_info->log_log(LOG_INFO, __FILE__, __LINE__, __VA_ARGS__)
+#define log_warn(...)                                                          \
+  plugin_info->log_log(LOG_WARN, __FILE__, __LINE__, __VA_ARGS__)
+#define log_error(...)                                                         \
+  plugin_info->log_log(LOG_ERROR, __FILE__, __LINE__, __VA_ARGS__)
+#define log_fatal(...)                                                         \
+  plugin_info->log_log(LOG_FATAL, __FILE__, __LINE__, __VA_ARGS__)
+#endif
 #else
 
 #define log_trace(...)
@@ -168,6 +179,8 @@ int log_add_callback(log_LogFn fn, void *udata, int level);
  */
 int log_add_fp(FILE *fp, int level);
 
+typedef void (*log_log_fn)(int level, const char *file, int line,
+                           const char *fmt, ...);
 /**
  * @brief Main log function used to log an event use the macros instead
  *
@@ -176,6 +189,9 @@ int log_add_fp(FILE *fp, int level);
  * @param line Line in the source file
  * @param fmt Format to print
  */
+#ifndef _PLUGIN_
 void log_log(int level, const char *file, int line, const char *fmt, ...);
+#endif
 
 #endif
+// Vim: set expandtab tabstop=2 shiftwidth=2:
