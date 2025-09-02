@@ -4,6 +4,7 @@
 #include "lua/lua_.h"
 #include "lua/setup.h"
 #include "plugin/plugin.h"
+#include "plugin/simple_http_plugin.h"
 #include "quit_handler.h"
 #include "socket.h"
 #include "threadJob.h"
@@ -49,6 +50,10 @@ int main(int argc, char **argv) {
     return 1;
   }
   g_plugin = drv->plugins;
+
+  log_trace("Triggering test event");
+  trigger_event(g_plugin, event_test_types, 42, -4200, 3.14f, 2.718281828459,
+                "Hello, World!");
 
   int fds[MAX_OPEN_SOCKETS];
   for (int i = 0; i < drv->socket_count; i++)

@@ -95,8 +95,10 @@ prolog:
 
 $(BUILD_DIR):
 	@printf "  %-8s %s\n" "MKDIR" "$(patsubst $(SRC_DIR)%, $(BUILD_DIR)%, $(shell find $(SRC_DIR) -type d))"
-	@printf "  %-8s %s\n" "MKDIR" "$(patsubst $(SRC_DIR)%, $(PRE_MAKE_DIRS)%, $(shell find $(SRC_DIR) -type d))"
 	@mkdir -p $(patsubst $(SRC_DIR)%, $(BUILD_DIR)%, $(shell find $(SRC_DIR) -type d))
+
+$(PRE_MAKE_DIRS):
+	@printf "  %-8s %s\n" "MKDIR" "$(patsubst $(SRC_DIR)%, $(PRE_MAKE_DIRS)%, $(shell find $(SRC_DIR) -type d))"
 	@mkdir -p $(patsubst $(SRC_DIR)%, $(PRE_MAKE_DIRS)%, $(shell find $(SRC_DIR) -type d))
 
 $(BUILD_DIR)/%.o: $(SRC_DIR)/%.c | $(BUILD_DIR)

@@ -20,6 +20,8 @@ plugin_status_t trigger_event(const plugin_node_pt plugins,
       current = current->next;
       continue;
     }
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunused-variable"
 #define PL(ret, name, ...)                                                     \
   if (event == event_##name) {                                                 \
     if (plugin->info.events.name != NULL) {                                    \
@@ -37,6 +39,7 @@ plugin_status_t trigger_event(const plugin_node_pt plugins,
     }                                                                          \
   }
     EVENTS
+#pragma clang diagnostic pop
 #undef PL
 
     current = current->next;
