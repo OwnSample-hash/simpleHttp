@@ -27,7 +27,7 @@ void ctrl_c_h(int sigframe) {
   //   free(drv->socket[i]->addr);
   //   free(drv->socket[i]);
   // }
-  unload_all_plugins(drv->plugin_info);
+  unload_all_plugins(drv->plugins);
   free(drv->socket);
   free(drv->routes_root);
   free(drv->server_root);

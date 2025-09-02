@@ -2,7 +2,10 @@ BIN:= simpleHttpd
 
 CC:=clang
 LD:=clang
-CFLAGS:=-ggdb -DBIN_NAME=\"${BIN}\" -DGIT_COMMIT=\"$(shell git rev-parse --short HEAD)\" -DLOG_USE_COLOR=1 -Wextra -Wall
+CFLAGS:=-ggdb -DBIN_NAME=\"${BIN}\" -DGIT_COMMIT=\"$(shell git rev-parse --short HEAD)\" \
+	-DLOG_USE_COLOR=1 -Wextra -Wall \
+	$(shell for dir in $(shell find src -type d); do echo -I$$dir; done) 
+
 LDFLAGS:=-lmagic -llua -lm -ldl
 
 CC_U:= ${shell echo ${CC}-CC | sed 's/.*/\U&/'}
@@ -13,24 +16,41 @@ SRC_DIR = src
 PL_DIR = plugins
 BUILD_DIR = ${_MAKE_DIR}/build
 PRE_MAKE_DIRS = ${_MAKE_DIR}/pre
+PRE_MAKE_CSRCS = ${_MAKE_DIR}/pre_proc/build
 
 CSRCS := $(shell find ${SRC_DIR} -type f -name "*.c")
-PRE_CSRCS:= $(shell find ${SRC_DIR} -type f -name "*.c.sh")
-CSRCS := $(CSRCS) $(shell for f in $(PRE_CSRCS); do $$f; done)
-
-OBJS = $(patsubst $(SRC_DIR)/%.c, $(BUILD_DIR)/%.o, $(CSRCS))
+PRE_MK := $(patsubst $(SRC_DIR)/%.c.sh, ${PRE_MAKE_DIRS}/%.mk, \
+	  $(shell find ${SRC_DIR} -type f -name "*.c.sh"))
 
 PLUGINS = $(shell find ${PL_DIR} -type f -name "Makefile" -exec dirname {} \;)
 PLUGINS_INSTALL_PREFIX = $(shell realpath plugin_install)
 
-@chain: plugins ${BIN}
+@chain: ${PRE_MK} plugins ${BIN}
 include chains.mk
+
+REMOVAL  := 
+ADDITION :=
+
+include ${PRE_MK}
+
+CSRCS := $(filter-out $(REMOVAL), $(CSRCS)) ${ADDITION}
+
+PRE_CSRCS:= $(shell find ${PRE_MAKE_DIRS} -type f -name "*.c.sh")
+
+OBJS = $(patsubst $(SRC_DIR)/%.c, $(BUILD_DIR)/%.o, $(CSRCS))
+OBJS := $(patsubst $(PRE_MAKE_CSRCS)/%.c, $(BUILD_DIR)/%.mk.o, $(OBJS))
 
 all: @chain
 	@printf "  Done bulding\n"
 
 restore:
 	mv ${BIN}.prev ${BIN}
+
+$(PRE_MK): $(shell find ${SRC_DIR} -type f -name "*.c.sh") | $(PRE_MAKE_DIRS)
+	@printf "  %-9s %s\n" "GEN" "$@"
+	@mkdir -p $(dir $@)
+	@PATH=$(shell realpath tools/):$$PATH bash $< ${PRE_MAKE_DIRS} 
+
 
 LUA_VER = lua-5.4.7
 install_lua:
@@ -51,12 +71,17 @@ prolog:
 	@echo BUILD_DIR=${BUILD_DIR}
 	@echo FULL_BD=$(patsubst $(SRC_DIR)%, $(BUILD_DIR)%, $(shell find $(SRC_DIR) -type d))
 	@echo PRE_CSRCS=${PRE_CSRCS}
-	@echo CSRCS=${CSRCS}
-	@echo OBJS=${OBJS}
+	@echo PRE_MK=${PRE_MK}
+	@echo CSRCS="${CSRCS}"
+	@echo OBJS="${OBJS}"
+	@echo
+	@echo ADDITION=${ADDITION}
+	@echo REMOVAL=${REMOVAL}
+	@echo
 	@echo PLUGINS=${PLUGINS}
 	@echo PLUGINS_INSTALL_PREFIX=${PLUGINS_INSTALL_PREFIX}
 	@echo
-	@echo "Building ${BIN} with plugins support"
+	@echo "Building ${BIN} with plugin support"
 	@echo "Plugins found:"
 	@for plugin in ${PLUGINS}; do \
 		if [ -f $$plugin/Makefile ]; then \
@@ -70,9 +95,15 @@ prolog:
 
 $(BUILD_DIR):
 	@printf "  %-8s %s\n" "MKDIR" "$(patsubst $(SRC_DIR)%, $(BUILD_DIR)%, $(shell find $(SRC_DIR) -type d))"
+	@printf "  %-8s %s\n" "MKDIR" "$(patsubst $(SRC_DIR)%, $(PRE_MAKE_DIRS)%, $(shell find $(SRC_DIR) -type d))"
 	@mkdir -p $(patsubst $(SRC_DIR)%, $(BUILD_DIR)%, $(shell find $(SRC_DIR) -type d))
+	@mkdir -p $(patsubst $(SRC_DIR)%, $(PRE_MAKE_DIRS)%, $(shell find $(SRC_DIR) -type d))
 
 $(BUILD_DIR)/%.o: $(SRC_DIR)/%.c | $(BUILD_DIR)
+	@printf "  %s  %s\n" ${CC_U} ${shell echo $< | rev | tr '/' '\n' | rev | head -1}
+	@$(CC) $(CFLAGS) -c $< -o $@
+
+$(BUILD_DIR)/%.mk.o: $(PRE_MAKE_CSRCS)/%.c | $(BUILD_DIR)
 	@printf "  %s  %s\n" ${CC_U} ${shell echo $< | rev | tr '/' '\n' | rev | head -1}
 	@$(CC) $(CFLAGS) -c $< -o $@
 

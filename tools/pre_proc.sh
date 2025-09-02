@@ -8,7 +8,7 @@ SRC_LINE_ARG_TMPL="va_arg(ap, %s), "
 
 IN_FILE="$1"
 IN_POINT="$2"
-OUT_FILE=${3:-"$PP_PREFIX/$1.i"}
+OUT_FILE=${3:-"$PP_PREFIX/$1"}
 
 if [[ -z $3 ]]; then 
   OUT_FILE=$(echo "$OUT_FILE" | sed 's/src/build/')

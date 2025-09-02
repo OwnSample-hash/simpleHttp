@@ -110,12 +110,12 @@ int lua_plugin_init(lua_State *L) {
     log_fatal("Failed to get drv");
     return 0;
   }
-  if (drv->plugin_info) {
+  if (drv->plugins) {
     log_fatal("Plugin info already set, cannot set again");
     lua_pushliteral(L, "Plugin info already set, cannot set again");
     lua_error(L);
   }
-  switch (plugin_system_init(lua_tostring(L, 1), &drv->plugin_info,
+  switch (plugin_system_init(lua_tostring(L, 1), &drv->plugins,
                              &drv->plugin_count)) {
   case HTTP_PLUGIN_INVALID:
     log_fatal("Invalid plugin directory");
