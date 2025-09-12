@@ -44,18 +44,21 @@
  * The socket address struct
  * @def MAX_OPEN_SOCKETS
  * The maximum number of open sockets
+ * @def STACK_COUNT
+ * The stack count
  * @def THREAD_LIMIT
  * The maximum number of threads
+ * @def QUEUE_SIZE
+ * The maximum size of the job queue
  */
 #define MAX_ADDR_LEN 12
 
-#define MAX_OPEN_SOCKETS 4
+#define MAX_OPEN_SOCKETS 128
 
-/**
- * @brief The stack count
- */
 #define STACK_COUNT 64
 
 #define THREAD_LIMIT 128
+
+#define QUEUE_SIZE 65536
 
 #endif // __HTTP_CONFIG_H__
