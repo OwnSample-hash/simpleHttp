@@ -21,6 +21,7 @@
  */
 
 #include "log.h"
+#include <pthread.h>
 #include <stdlib.h>
 
 /**
@@ -52,6 +53,7 @@ static struct {
   log_LockFn lock;
   int level;
   bool quiet;
+  bool thread_id;
   callback_t callbacks[MAX_CALLBACKS];
 } L;
 
@@ -74,6 +76,9 @@ static void stdout_callback(log_event_t *ev) {
   fprintf(ev->udata, "%s %-5s %s:%d: ", buf, level_strings[ev->level], ev->file,
           ev->line);
 #endif
+  if (L.thread_id) {
+    fprintf(ev->udata, "[0x%X] ", (unsigned int)(pthread_self() & 0xffff));
+  }
   vfprintf(ev->udata, ev->fmt, ev->ap);
   fprintf(ev->udata, "\n");
   fflush(ev->udata);
@@ -111,6 +116,8 @@ void log_set_lock(log_LockFn fn, void *udata) {
 void log_set_level(int level) { L.level = level; }
 
 void log_set_quiet(bool enable) { L.quiet = enable; }
+
+void log_enable_thread_id(bool enable) { L.thread_id = enable; }
 
 int log_add_callback(log_LogFn fn, void *udata, int level) {
   for (int i = 0; i < MAX_CALLBACKS; i++) {
@@ -166,3 +173,4 @@ void log_log(int level, const char *file, int line, const char *fmt, ...) {
 
   unlock();
 }
+// Vim: set expandtab tabstop=2 shiftwidth=2:

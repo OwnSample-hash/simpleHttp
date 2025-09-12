@@ -3,7 +3,9 @@
 #include "lua/lua_.h"
 #include "plugin/plugin.h"
 #include "socket.h"
+#include "thread_pool.h"
 #include <lua.h>
+#include <pthread.h>
 #include <stdlib.h>
 
 open_socket_t open_sockets[MAX_OPEN_SOCKETS] = {0};
@@ -36,6 +38,7 @@ void ctrl_c_h(int sigframe) {
   while ((ptr = pop_ptr())) {
     free(ptr);
   }
+  pthread_mutex_destroy(&log_mutex);
   if (sigframe != -1)
     exit(0);
 }

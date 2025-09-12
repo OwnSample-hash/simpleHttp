@@ -161,6 +161,13 @@ void log_set_level(int level);
 void log_set_quiet(bool enable);
 
 /**
+ * @brief Enable or disable thread id in the log
+ *
+ * @param enable Enable it or not
+ */
+void log_enable_thread_id(bool enable);
+
+/**
  * @brief Add an additional callback when a log event happens
  *
  * @param fn The callback
