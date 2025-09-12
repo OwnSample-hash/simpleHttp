@@ -71,6 +71,10 @@ function set_keep_alive(cfg) end
 --- @param dir string
 function plugin_init(dir) end
 
+--- C function for setting the thread limit
+--- @param limit number
+function set_thread_limit(limit) end
+
 ---@type number
 AF_INET = 2
 

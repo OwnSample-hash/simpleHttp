@@ -101,6 +101,16 @@ int lua_set_keep_alive(lua_State *L) {
   return 0;
 }
 
+int lua_set_thread_limit(lua_State *L) {
+  luaL_checkinteger(L, -1);
+  lua_getglobal(L, "__DRV");
+  luaL_checktype(L, -1, LUA_TLIGHTUSERDATA);
+  driver_t *drv = lua_touserdata(L, -1);
+  drv->thread_limit = lua_tonumber(L, -2);
+  log_trace("Thread limit set to %d", drv->thread_limit);
+  return 0;
+}
+
 int lua_plugin_init(lua_State *L) {
   luaL_checktype(L, 1, LUA_TSTRING);
   lua_getglobal(L, "__DRV");

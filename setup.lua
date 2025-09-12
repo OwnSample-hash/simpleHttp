@@ -2,6 +2,8 @@
 
 plugin_init("./plugin_install")
 
+set_thread_limit(16)
+
 create_socket("127.0.0.1", 8080, AF_INET, 5, HTTP)
 create_socket("::1", 8080, AF_INET6, 5, HTTP)
 

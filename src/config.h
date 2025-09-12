@@ -44,6 +44,8 @@
  * The socket address struct
  * @def MAX_OPEN_SOCKETS
  * The maximum number of open sockets
+ * @def THREAD_LIMIT
+ * The maximum number of threads
  */
 #define MAX_ADDR_LEN 12
 
@@ -53,5 +55,7 @@
  * @brief The stack count
  */
 #define STACK_COUNT 64
+
+#define THREAD_LIMIT 128
 
 #endif // __HTTP_CONFIG_H__

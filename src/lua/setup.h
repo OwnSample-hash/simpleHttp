@@ -61,6 +61,7 @@ typedef struct _drv {
   keep_alive_t keep_alive;
   plugin_node_pt plugins; /**< Plugin information */
   size_t plugin_count;    /**< Number of plugins */
+  int thread_limit;       /**< Thread limit */
 } driver_t;
 
 /**
@@ -82,6 +83,7 @@ void init(const char *conf_file, driver_t *drv);
   REG(set_routes_root)                                                         \
   REG(set_log_level)                                                           \
   REG(set_keep_alive)                                                          \
+  REG(set_thread_limit)                                                        \
   REG(plugin_init)
 
 /**
