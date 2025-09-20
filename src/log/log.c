@@ -57,12 +57,13 @@ static struct {
   callback_t callbacks[MAX_CALLBACKS];
 } L;
 
-static const char *level_strings[] = {"TRACE", "DEBUG", "INFO",
-                                      "WARN",  "ERROR", "FATAL"};
+static const char *level_strings[] = {"TRACE", "DEBUG", "INFO", "WARN",
+                                      "ERROR", "FATAL", "ATTN"};
 
 #ifdef LOG_USE_COLOR
 static const char *level_colors[] = {"\x1b[94m", "\x1b[36m", "\x1b[32m",
-                                     "\x1b[33m", "\x1b[31m", "\x1b[35m"};
+                                     "\x1b[33m", "\x1b[31m", "\x1b[35m",
+                                     "\x1b[95m"};
 #endif
 
 static void stdout_callback(log_event_t *ev) {
