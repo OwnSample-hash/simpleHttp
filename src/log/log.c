@@ -78,7 +78,9 @@ static void stdout_callback(log_event_t *ev) {
           ev->line);
 #endif
   if (L.thread_id) {
-    fprintf(ev->udata, "[0x%X] ", (unsigned int)(pthread_self() & 0xffff));
+    fprintf(ev->udata, "[0x%X%X] ",
+            (unsigned int)(pthread_self() & 0xFFFF0000) >> 0x10,
+            (unsigned int)(pthread_self() & 0xFFFF));
   }
   vfprintf(ev->udata, ev->fmt, ev->ap);
   fprintf(ev->udata, "\n");
