@@ -53,6 +53,9 @@ typedef struct log_event {
 } log_event_t;
 /**<@copydoc log_event*/
 
+static const char *level_strings[] = {"TRACE", "DEBUG", "INFO", "WARN",
+                                      "ERROR", "FATAL", "ATTN"};
+
 /**
  * @brief Callback when logging
  */

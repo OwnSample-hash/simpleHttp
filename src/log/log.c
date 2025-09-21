@@ -57,9 +57,6 @@ static struct {
   callback_t callbacks[MAX_CALLBACKS];
 } L;
 
-static const char *level_strings[] = {"TRACE", "DEBUG", "INFO", "WARN",
-                                      "ERROR", "FATAL", "ATTN"};
-
 #ifdef LOG_USE_COLOR
 static const char *level_colors[] = {"\x1b[94m", "\x1b[36m", "\x1b[32m",
                                      "\x1b[33m", "\x1b[31m", "\x1b[35m",
@@ -78,9 +75,7 @@ static void stdout_callback(log_event_t *ev) {
           ev->line);
 #endif
   if (L.thread_id) {
-    fprintf(ev->udata, "[0x%X%X] ",
-            (unsigned int)(pthread_self() & 0xFFFF0000) >> 0x10,
-            (unsigned int)(pthread_self() & 0xFFFF));
+    fprintf(ev->udata, "[0x%X] ", (unsigned int)(pthread_self() & 0xFFFFFFFF));
   }
   vfprintf(ev->udata, ev->fmt, ev->ap);
   fprintf(ev->udata, "\n");
